@@ -27,15 +27,17 @@ serve:
 
 # Open browser to the application
 open:
-    @echo "🌐 Opening Glyph Party in browser..."
-    @if [[ "$OSTYPE" == "darwin"* ]]; then open http://localhost:8000; elif [[ "$OSTYPE" == "linux-gnu"* ]]; then xdg-open http://localhost:8000; else echo "Please open http://localhost:8000 in your browser"; fi
+    #!/usr/bin/env bash
+    echo "🌐 Opening Glyph Party in browser..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then open http://localhost:8000; elif [[ "$OSTYPE" == "linux-gnu"* ]]; then xdg-open http://localhost:8000; else echo "Please open http://localhost:8000 in your browser"; fi
 
 # Start server and open browser in one command
 dev:
-    @echo "✨ Starting Glyph Party development environment..."
-    @echo "🌐 Opening browser..."
-    @if [[ "$OSTYPE" == "darwin"* ]]; then open http://localhost:8000 2>/dev/null || true; elif [[ "$OSTYPE" == "linux-gnu"* ]]; then xdg-open http://localhost:8000 2>/dev/null || true; else echo "Please open http://localhost:8000 in your browser"; fi
-    @echo "🚀 Starting server..."
+    #!/usr/bin/env bash
+    echo "✨ Starting Glyph Party development environment..."
+    echo "🌐 Opening browser..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then open http://localhost:8000 2>/dev/null || true; elif [[ "$OSTYPE" == "linux-gnu"* ]]; then xdg-open http://localhost:8000 2>/dev/null || true; else echo "Please open http://localhost:8000 in your browser"; fi
+    echo "🚀 Starting server..."
     cd src && python3 -m http.server 8000
 
 # Complete setup for new development environment

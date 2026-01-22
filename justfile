@@ -53,22 +53,23 @@ deploy-prep: rebuild
 
 # Show project statistics
 stats:
-    @echo "📊 Glyph Party Statistics:"
-    @echo "================================"
-    @if [ -f "src/unicode-data.min.json" ]; then \
-        echo "Unicode data loaded ✅"; \
-        node -e "const data = require('./src/unicode-data.min.json'); console.log('Characters: ' + data.stats.totalCharacters.toLocaleString()); console.log('Categories: ' + data.stats.categories); console.log('Unicode Version: ' + data.stats.unicodeVersion)"; \
-    else \
-        echo "Unicode data not built ❌"; \
-        echo "Run 'just build' to generate data"; \
+    #!/usr/bin/env bash
+    echo "📊 Glyph Party Statistics:"
+    echo "================================"
+    if [ -f "src/unicode-data.min.json" ]; then
+        echo "Unicode data loaded ✅"
+        node -e "const data = require('./src/unicode-data.min.json'); console.log('Characters: ' + data.stats.totalCharacters.toLocaleString()); console.log('Categories: ' + data.stats.categories); console.log('Unicode Version: ' + data.stats.unicodeVersion)"
+    else
+        echo "Unicode data not built ❌"
+        echo "Run 'just build' to generate data"
     fi
-    @echo ""
-    @echo "Files:"
-    @find src -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.json" | sort | while read file; do \
-        if [ -f "$$file" ]; then \
-            size=$$(ls -lh "$$file" | awk '{print $$5}'); \
-            echo "  $$file ($$size)"; \
-        fi \
+    echo ""
+    echo "Files:"
+    find src \( -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.json" \) | sort | while read file; do
+        if [ -f "$file" ]; then
+            size=$(ls -lh "$file" | awk '{print $5}')
+            echo "  $file ($size)"
+        fi
     done
 
 # Check if all required files exist

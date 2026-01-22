@@ -1,172 +1,214 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Glyph Party - Unicode Character Search</title>
-    <meta name="description" content="A beautiful Unicode character search tool for terminal developers. Find the perfect glyphs for your CLI applications.">
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
+    <meta
+      name="description"
+      content="A beautiful Unicode character search tool for terminal developers. Find the perfect glyphs for your CLI applications."
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1 class="title">
-                    <span class="title-glyph">✨</span>
-                    Glyph Party
-                    <span class="title-version" id="glyph-party-version">v1.0</span>
-                </h1>
-                <p class="subtitle">
-                    Beautiful Unicode Character Search
-                </p>
-            </div>
-
-            <!-- Search -->
-            <div class="search-container">
-                <div class="search-box">
-                    <input
-                        type="text"
-                        id="search-input"
-                        placeholder="Search characters... (arrow, heart, math)"
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-                    <div class="search-icon">🔍</div>
-                </div>
-
-                <!-- Filters -->
-                <div class="filters">
-                    <div class="filter-group">
-                        <label class="filter-label">Category:</label>
-                        <select id="category-filter" class="filter-select">
-                            <option value="">All Categories</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">Block:</label>
-                        <select id="block-filter" class="filter-select">
-                            <option value="">All Blocks</option>
-                        </select>
-                    </div>
-
-                    <button id="clear-filters" class="clear-btn">Clear</button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Stats -->
-        <div class="stats-bar">
-            <div class="stat">
-                <span class="stat-label">Total:</span>
-                <span id="total-count" class="stat-value">0</span>
-            </div>
-            <div class="stat">
-                <span class="stat-label">Showing:</span>
-                <span id="visible-count" class="stat-value">0</span>
-            </div>
-            <div class="stat">
-                <span class="stat-label">Categories:</span>
-                <span id="category-count" class="stat-value">0</span>
-            </div>
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <h1 class="title">
+            <span class="title-glyph">✨</span>
+            Glyph Party
+            <span class="title-version" id="glyph-party-version">v1.0</span>
+          </h1>
+          <p class="subtitle">Beautiful Unicode Character Search</p>
         </div>
 
-        <!-- Results -->
-        <main class="main">
-            <div id="loading" class="loading">
-                <div class="loading-spinner"></div>
-                <p>Loading Unicode data...</p>
+        <!-- Search -->
+        <div class="search-container">
+          <div class="search-box">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search characters... (arrow, heart, math)"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <div class="search-icon">🔍</div>
+          </div>
+
+          <!-- Filters -->
+          <div class="filters">
+            <div class="filter-group">
+              <label class="filter-label">Category:</label>
+              <select id="category-filter" class="filter-select">
+                <option value="">All Categories</option>
+              </select>
             </div>
 
-            <div id="no-results" class="no-results hidden">
-                <div class="no-results-icon">🔍</div>
-                <h3>No characters found</h3>
-                <p>Try adjusting your search or filters</p>
+            <div class="filter-group">
+              <label class="filter-label">Block:</label>
+              <select id="block-filter" class="filter-select">
+                <option value="">All Blocks</option>
+              </select>
             </div>
 
-            <div id="character-grid" class="character-grid hidden">
-                <!-- Characters will be inserted here by JavaScript -->
-            </div>
-        </main>
+            <button id="clear-filters" class="clear-btn">Clear</button>
+          </div>
+        </div>
+      </header>
 
-        <!-- Toast notifications -->
-        <div id="toast-container" class="toast-container"></div>
+      <!-- Stats -->
+      <div class="stats-bar">
+        <div class="stat">
+          <span class="stat-label">Total:</span>
+          <span id="total-count" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Showing:</span>
+          <span id="visible-count" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Categories:</span>
+          <span id="category-count" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <main class="main">
+        <div id="loading" class="loading">
+          <div class="loading-spinner"></div>
+          <p>Loading Unicode data...</p>
+        </div>
+
+        <div id="no-results" class="no-results hidden">
+          <div class="no-results-icon">🔍</div>
+          <h3>No characters found</h3>
+          <p>Try adjusting your search or filters</p>
+        </div>
+
+        <div id="character-grid" class="character-grid hidden">
+          <!-- Characters will be inserted here by JavaScript -->
+        </div>
+      </main>
+
+      <!-- Toast notifications -->
+      <div id="toast-container" class="toast-container"></div>
     </div>
 
     <!-- Character detail modal -->
     <div id="character-modal" class="modal hidden">
-        <div class="modal-overlay"></div>
-        <div class="modal-content">
-            <button class="modal-close" id="modal-close">&times;</button>
-            <div class="character-detail">
-                <div class="character-large" id="modal-char">♥</div>
-                <div class="character-info">
-                    <h2 id="modal-name">BLACK HEART SUIT</h2>
-                    <div class="character-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Unicode:</span>
-                            <span class="meta-value" id="modal-code">U+2665</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Category:</span>
-                            <span class="meta-value" id="modal-category">Other Symbols</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Block:</span>
-                            <span class="meta-value" id="modal-block">Miscellaneous Symbols</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Decimal:</span>
-                            <span class="meta-value" id="modal-decimal">9829</span>
-                        </div>
-                    </div>
-                    <div class="character-actions">
-                        <button class="action-btn primary" id="copy-char">
-                            📋 Copy Character
-                        </button>
-                        <button class="action-btn" id="copy-code">
-                            🔢 Copy Unicode
-                        </button>
-                        <button class="action-btn" id="copy-html">
-                            &lt;/&gt; Copy HTML
-                        </button>
-                    </div>
-                </div>
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <button class="modal-close" id="modal-close">&times;</button>
+        <div class="character-detail">
+          <div class="character-large" id="modal-char">♥</div>
+          <div class="character-info">
+            <h2 id="modal-name">BLACK HEART SUIT</h2>
+            <div class="character-meta">
+              <div class="meta-item">
+                <span class="meta-label">Unicode:</span>
+                <span class="meta-value" id="modal-code">U+2665</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Category:</span>
+                <span class="meta-value" id="modal-category"
+                  >Other Symbols</span
+                >
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Block:</span>
+                <span class="meta-value" id="modal-block"
+                  >Miscellaneous Symbols</span
+                >
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Decimal:</span>
+                <span class="meta-value" id="modal-decimal">9829</span>
+              </div>
+              <div class="meta-item hidden" id="modal-description-row">
+                <span class="meta-label">Description:</span>
+                <span class="meta-value" id="modal-description"></span>
+              </div>
             </div>
+            <div class="character-actions">
+              <button class="action-btn primary" id="copy-char">
+                📋 Copy Character
+              </button>
+              <button class="action-btn" id="copy-code">🔢 Copy Unicode</button>
+              <button class="action-btn" id="copy-html">
+                &lt;/&gt; Copy HTML
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <footer class="footer">
-        <div class="footer-content">
-            <p class="footer-text">
-                Built with ❤️ for terminal app developers 🧑‍💻 seeking the perfect glyphs •
-                <span id="unicode-version">Unicode 16.0</span>
-            </p>
-            <div class="footer-links">
-                <a href="https://wimpysworld.social/@martin" target="_blank" rel="noopener" aria-label="Mastodon">
-                    <i class="fab fa-mastodon"></i>
-                </a>
-                <a href="https://bsky.app/profile/wimpys.world" target="_blank" rel="noopener" aria-label="Bluesky">
-                    <i class="fab fa-bluesky"></i>
-                </a>
-                <a href="https://github.com/wimpysworld/glyph-party" target="_blank" rel="noopener" aria-label="GitHub">
-                    <i class="fab fa-github"></i>
-                </a>
-                <a href="https://wimpysworld.com" target="_blank" rel="noopener" aria-label="Website">
-                    <i class="fas fa-globe"></i>
-                </a>
-                <a href="https://linuxmatters.sh" target="_blank" rel="noopener" aria-label="Linux Matters Podcast">
-                    <i class="fas fa-podcast"></i>
-                </a>
-            </div>
+      <div class="footer-content">
+        <p class="footer-text">
+          Built with ❤️ for terminal app developers 🧑‍💻 seeking the perfect
+          glyphs •
+          <span id="unicode-version">Unicode 16.0</span>
+        </p>
+        <div class="footer-links">
+          <a
+            href="https://wimpysworld.social/@martin"
+            target="_blank"
+            rel="noopener"
+            aria-label="Mastodon"
+          >
+            <i class="fab fa-mastodon"></i>
+          </a>
+          <a
+            href="https://bsky.app/profile/wimpys.world"
+            target="_blank"
+            rel="noopener"
+            aria-label="Bluesky"
+          >
+            <i class="fab fa-bluesky"></i>
+          </a>
+          <a
+            href="https://github.com/wimpysworld/glyph-party"
+            target="_blank"
+            rel="noopener"
+            aria-label="GitHub"
+          >
+            <i class="fab fa-github"></i>
+          </a>
+          <a
+            href="https://wimpysworld.com"
+            target="_blank"
+            rel="noopener"
+            aria-label="Website"
+          >
+            <i class="fas fa-globe"></i>
+          </a>
+          <a
+            href="https://linuxmatters.sh"
+            target="_blank"
+            rel="noopener"
+            aria-label="Linux Matters Podcast"
+          >
+            <i class="fas fa-podcast"></i>
+          </a>
         </div>
+      </div>
     </footer>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>

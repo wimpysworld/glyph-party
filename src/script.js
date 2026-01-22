@@ -178,15 +178,25 @@ class GlyphParty {
     this.filteredCharacters = this.characters.filter((char) => {
       // Search filter
       if (this.currentSearch) {
-        const searchTerm = this.currentSearch;
-        const matchesName = char.name.toLowerCase().includes(searchTerm);
-        const matchesCode = char.code.toLowerCase().includes(searchTerm);
-        const matchesChar = char.char.includes(searchTerm);
-        const matchesDesc = char.description
-          ?.toLowerCase()
-          .includes(searchTerm);
+        const searchTerms = this.currentSearch
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean);
 
-        if (!matchesName && !matchesCode && !matchesChar && !matchesDesc) {
+        // Build combined searchable text
+        const searchableText = [
+          char.name.toLowerCase(),
+          char.code.toLowerCase(),
+          char.char,
+          char.description?.toLowerCase() || "",
+        ].join(" ");
+
+        // All terms must match (AND logic)
+        const allTermsMatch = searchTerms.every((term) =>
+          searchableText.includes(term),
+        );
+
+        if (!allTermsMatch) {
           return false;
         }
       }

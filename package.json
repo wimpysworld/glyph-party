@@ -21,7 +21,7 @@
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
-    "ucd-full": "^16.0.1"
+    "ucd-full": "^17.0.0"
   },
   "engines": {
     "node": ">=16.0.0"

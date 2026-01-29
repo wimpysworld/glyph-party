@@ -32,6 +32,7 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         id: deploy
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -39,6 +40,7 @@ jobs:
           command: pages deploy src --project-name=glyph-party --branch=${{ github.head_ref }}
 
       - name: Comment on PR
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v8
         with:
           script: |

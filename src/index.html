@@ -13,7 +13,12 @@
       (function () {
         const STORAGE_KEY = "glyph-party-theme";
 
-        const savedTheme = localStorage.getItem(STORAGE_KEY);
+        let savedTheme = null;
+        try {
+          savedTheme = localStorage.getItem(STORAGE_KEY);
+        } catch (error) {
+          savedTheme = null;
+        }
         if (savedTheme) {
           document.documentElement.setAttribute("data-theme", savedTheme);
         } else {

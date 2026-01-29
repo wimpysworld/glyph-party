@@ -8,3 +8,6 @@ yarn-error.log*
 src/unicode-data.json
 src/unicode-data.min.json
 src/categories.json
+
+.env
+__pycache__/

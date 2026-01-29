@@ -1,0 +1,13 @@
+[project]
+name = "glyph-party"
+version = "0.1.1"
+description = "A drop-dead gorgeous Unicode character search tool for developers who want to add visual flair to their CLI applications, because your terminal deserves better than boring ASCII. Built with love, powered by cups of tea, and themed with Catppuccin colours 🎨 that'll make your eyes happy."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "google-genai>=1.60.0",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.1",
+    "tenacity>=9.1.2",
+    "tqdm>=4.67.1",
+]

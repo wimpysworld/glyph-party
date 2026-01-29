@@ -13,6 +13,12 @@ install:
 build:
     npm run build:data
 
+# Generate descriptions for glyphs using Gemini API
+generate-descriptions:
+    @echo "🤖 Generating glyph descriptions..."
+    @if ! command -v uv >/dev/null 2>&1; then echo "❌ uv not found. Install it from: https://docs.astral.sh/uv/getting-started/installation/"; exit 1; fi
+    uv run generate_descriptions.py
+
 # Clean generated data files
 clean:
     npm run clean
@@ -84,9 +90,11 @@ check:
     @if [ -f "package.json" ]; then echo "✅ package.json"; else echo "❌ package.json (missing)"; fi
     @echo ""
     @if [ -f "src/unicode-data.min.json" ]; then echo "✅ Unicode data built"; else echo "⚠️  Unicode data not built (run 'just build')"; fi
+    @if [ -f "descriptions.json" ]; then echo "✅ Glyph descriptions generated"; else echo "⚠️  Glyph descriptions not generated (run 'just generate-descriptions')"; fi
     @echo ""
     @if command -v node >/dev/null 2>&1; then echo "✅ Node.js available ($(node --version))"; else echo "❌ Node.js not found"; fi
     @if command -v python3 >/dev/null 2>&1; then echo "✅ Python available ($(python3 --version 2>&1))"; else echo "❌ Python not found"; fi
+    @if command -v uv >/dev/null 2>&1; then echo "✅ uv available ($(uv --version))"; else echo "⚠️  uv not found (needed for 'just generate-descriptions')"; fi
 
 # Quick development cycle - rebuild and serve
 quick: rebuild dev
@@ -97,22 +105,23 @@ help:
     @echo "============================="
     @echo ""
     @echo "🚀 Getting started:"
-    @echo "  just setup      # Complete setup for new environment"
-    @echo "  just dev        # Start development server + open browser"
+    @echo "  just setup                  # Complete setup for new environment"
+    @echo "  just dev                    # Start development server + open browser"
     @echo ""
     @echo "🔧 Development:"
-    @echo "  just build      # Generate Unicode data"
-    @echo "  just serve      # Start development server"
-    @echo "  just open       # Open browser to app"
-    @echo "  just quick      # Rebuild + serve + open"
+    @echo "  just build                  # Generate Unicode data"
+    @echo "  just generate-descriptions  # Generate glyph descriptions"
+    @echo "  just serve                  # Start development server"
+    @echo "  just open                   # Open browser to app"
+    @echo "  just quick                  # Rebuild + serve + open"
     @echo ""
     @echo "📊 Information:"
-    @echo "  just stats      # Show project statistics"
-    @echo "  just check      # Verify setup"
+    @echo "  just stats                  # Show project statistics"
+    @echo "  just check                  # Verify setup"
     @echo ""
     @echo "🧹 Maintenance:"
-    @echo "  just clean      # Remove generated files"
-    @echo "  just rebuild    # Clean + build fresh"
+    @echo "  just clean                  # Remove generated files"
+    @echo "  just rebuild                # Clean + build fresh"
     @echo ""
     @echo "🌐 The Unicode data contains 10,000+ beautiful characters"
     @echo "   perfect for adding visual flair to terminal applications!"

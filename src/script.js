@@ -482,7 +482,13 @@ class GlyphParty {
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", (e) => {
-        if (!localStorage.getItem(this.STORAGE_KEY)) {
+        let hasSavedTheme = false;
+        try {
+          hasSavedTheme = !!localStorage.getItem(this.STORAGE_KEY);
+        } catch {
+          hasSavedTheme = false;
+        }
+        if (!hasSavedTheme) {
           this.setTheme(e.matches ? "dark" : "light", false);
         }
       });
@@ -499,7 +505,11 @@ class GlyphParty {
     this.updateThemeButton();
 
     if (save) {
-      localStorage.setItem(this.STORAGE_KEY, theme);
+      try {
+        localStorage.setItem(this.STORAGE_KEY, theme);
+      } catch {
+        // Storage unavailable (private browsing, quota exceeded, etc.)
+      }
     }
   }
 

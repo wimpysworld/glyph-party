@@ -2,8 +2,8 @@
 
 /**
  * Glyph Party - Unicode Data Builder
- * Extracts relevant Unicode characters for terminal/CLI visual flair
- * from the official Unicode Character Database (UCD)
+ * Builds terminal-friendly Unicode glyph data from the official
+ * Unicode Character Database (UCD).
  */
 
 const fs = require("fs");
@@ -11,7 +11,7 @@ const path = require("path");
 
 console.log("🎉 Building Unicode data for Glyph Party...\n");
 
-// Load optional descriptions file
+// Merge optional generated descriptions into character records.
 let descriptions = {};
 const descPath = path.join(__dirname, "descriptions.json");
 if (fs.existsSync(descPath)) {
@@ -19,7 +19,7 @@ if (fs.existsSync(descPath)) {
   console.log(`📝 Loaded ${Object.keys(descriptions).length} descriptions`);
 }
 
-// Import UCD data files and package info
+// Load UCD source tables and package versions.
 let unicodeData, blocks, categories, packageJson, ucdPackageJson;
 
 try {
@@ -99,9 +99,8 @@ function createBlockMap(blocks) {
     const [start, end] = entry.range;
     const startCode = parseInt(start, 16);
     const endCode = parseInt(end, 16);
-    const blockName = entry.block; // Fixed: was entry.name
+    const blockName = entry.block;
 
-    // Store range and name
     blockMap.set(`${startCode}-${endCode}`, blockName);
   });
 
@@ -126,7 +125,7 @@ function getBlockName(codepointHex, blockMap) {
 function isUsefulCharacter(char, name) {
   if (!char || char.length === 0) return false;
 
-  // Skip control characters, private use, etc.
+  // Exclude code points that do not render as useful glyphs.
   const code = char.codePointAt(0);
   if (code < 32 || (code >= 127 && code <= 159)) return false;
   if (code >= 0xe000 && code <= 0xf8ff) return false; // Private use
@@ -160,7 +159,7 @@ unicodeData.UnicodeData.forEach((entry) => {
   processedCount++;
 
   const codepoint = entry.codepoint;
-  const category = entry.category; // Fixed: was entry.generalCategory
+  const category = entry.category;
   const name = entry.name;
   const char = hexToChar(codepoint);
   const blockName = getBlockName(codepoint, blockMap);
@@ -186,7 +185,6 @@ unicodeData.UnicodeData.forEach((entry) => {
     filteredCount++;
   }
 
-  // Progress indicator
   if (processedCount % 10000 === 0) {
     console.log(`   Processed ${processedCount} characters...`);
   }

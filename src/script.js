@@ -1,6 +1,6 @@
 /**
  * Glyph Party - Unicode Character Search
- * Beautiful interface for finding Unicode characters
+ * Static Unicode search UI for terminal-friendly glyphs.
  */
 
 class GlyphParty {
@@ -35,7 +35,6 @@ class GlyphParty {
       this.characters = data.characters;
       this.stats = data.stats;
 
-      // Update stats display
       this.updateStats();
 
       console.log(
@@ -124,7 +123,6 @@ class GlyphParty {
     const categoryFilter = document.getElementById("category-filter");
     const blockFilter = document.getElementById("block-filter");
 
-    // Get unique categories and blocks
     const categories = [
       ...new Set(this.characters.map((char) => char.category)),
     ].sort();
@@ -132,7 +130,6 @@ class GlyphParty {
       ...new Set(this.characters.map((char) => char.block)),
     ].sort();
 
-    // Populate category filter
     categories.forEach((category) => {
       const option = document.createElement("option");
       option.value = category;
@@ -140,7 +137,6 @@ class GlyphParty {
       categoryFilter.appendChild(option);
     });
 
-    // Populate block filter
     blocks.forEach((block) => {
       const option = document.createElement("option");
       option.value = block;
@@ -187,7 +183,7 @@ class GlyphParty {
           .split(/\s+/)
           .filter(Boolean);
 
-        // Build combined searchable text
+        // Match against every visible detail on the character card and modal.
         const searchableText = [
           char.name.toLowerCase(),
           char.code.toLowerCase(),
@@ -195,7 +191,7 @@ class GlyphParty {
           char.description?.toLowerCase() || "",
         ].join(" ");
 
-        // All terms must match (AND logic)
+        // All search terms must match so multi-word queries narrow results.
         const allTermsMatch = searchTerms.every((term) =>
           searchableText.includes(term),
         );
@@ -241,7 +237,7 @@ class GlyphParty {
     noResults.classList.add("hidden");
     grid.classList.remove("hidden");
 
-    // Limit initial render for performance
+    // Limit initial paint work while keeping search results responsive.
     const maxRender = 500;
     const charactersToRender = this.filteredCharacters.slice(0, maxRender);
 
@@ -252,7 +248,6 @@ class GlyphParty {
       grid.appendChild(card);
     });
 
-    // Show load more message if there are more characters
     if (this.filteredCharacters.length > maxRender) {
       const loadMore = document.createElement("div");
       loadMore.className = "load-more";
@@ -287,7 +282,7 @@ class GlyphParty {
             </button>
         `;
 
-    // Click to copy (but not on the info button)
+    // Card clicks copy unless the detail button handled the click.
     card.addEventListener("click", (e) => {
       if (!e.target.closest(".character-info-btn")) {
         e.preventDefault();
@@ -295,7 +290,6 @@ class GlyphParty {
       }
     });
 
-    // Info button for details
     const infoBtn = card.querySelector(".character-info-btn");
     infoBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -308,7 +302,7 @@ class GlyphParty {
   copyCharacter(char, cardElement) {
     this.copyToClipboard(char.char, `${char.char} copied!`);
 
-    // Visual feedback
+    // Brief feedback confirms the copy action without blocking more clicks.
     cardElement.classList.add("copied");
     setTimeout(() => {
       cardElement.classList.remove("copied");
@@ -318,7 +312,6 @@ class GlyphParty {
   showCharacterDetail(char) {
     this.currentModalChar = char;
 
-    // Update modal content
     document.getElementById("modal-char").textContent = char.char;
     document.getElementById("modal-name").textContent = char.name;
     document.getElementById("modal-code").textContent = `U+${char.code}`;
@@ -327,7 +320,6 @@ class GlyphParty {
     document.getElementById("modal-block").textContent = char.block;
     document.getElementById("modal-decimal").textContent = char.decimal;
 
-    // Show description if present
     const descRow = document.getElementById("modal-description-row");
     if (char.description) {
       document.getElementById("modal-description").textContent =
@@ -337,7 +329,6 @@ class GlyphParty {
       descRow.classList.add("hidden");
     }
 
-    // Show modal
     document.getElementById("character-modal").classList.remove("hidden");
     document.body.style.overflow = "hidden";
   }
@@ -393,7 +384,7 @@ class GlyphParty {
       await navigator.clipboard.writeText(text);
       this.showToast(successMessage);
     } catch (error) {
-      // Fallback for older browsers
+      // Use the legacy copy path when the Clipboard API is unavailable or denied.
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed";
@@ -423,7 +414,7 @@ class GlyphParty {
 
     container.appendChild(toast);
 
-    // Auto remove after 3 seconds
+    // Fade toasts before removal so the CSS transition can finish.
     setTimeout(() => {
       toast.style.opacity = "0";
       toast.style.transform = "translateX(100%)";
@@ -472,13 +463,11 @@ class GlyphParty {
     this.themeToggle = document.getElementById("theme-toggle");
     if (!this.themeToggle) return;
 
-    // Update button state to match current theme
     this.updateThemeButton();
 
-    // Listen for toggle clicks
     this.themeToggle.addEventListener("click", () => this.toggleTheme());
 
-    // Listen for system preference changes (only if no saved preference)
+    // Follow system theme changes until the user chooses a theme.
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", (e) => {
@@ -519,13 +508,13 @@ class GlyphParty {
     const currentTheme = document.documentElement.getAttribute("data-theme");
     const isDark = currentTheme === "dark";
 
-    // Update aria-label for accessibility
+    // Keep the accessible name aligned with the next action.
     this.themeToggle.setAttribute(
       "aria-label",
       isDark ? "Switch to light mode" : "Switch to dark mode",
     );
 
-    // Update icon (sun for dark mode, moon for light mode - indicating what you'll get)
+    // Show the icon for the theme the button will switch to.
     this.themeToggle.innerHTML = isDark
       ? this.getSunIcon()
       : this.getMoonIcon();

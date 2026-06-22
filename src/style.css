@@ -1,4 +1,4 @@
-/* Catppuccin Mocha Color Palette */
+/* Catppuccin Mocha colour palette */
 :root {
   --rosewater: #f5e0dc;
   --flamingo: #f2cdcd;
@@ -28,7 +28,7 @@
   --crust: #11111b;
 }
 
-/* Light theme - Catppuccin Latte */
+/* Catppuccin Latte light theme */
 [data-theme="light"] {
   --rosewater: #dc8a78;
   --flamingo: #dd7878;

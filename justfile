@@ -19,6 +19,90 @@ generate-descriptions:
     @if ! command -v uv >/dev/null 2>&1; then echo "❌ uv not found. Install it from: https://docs.astral.sh/uv/getting-started/installation/"; exit 1; fi
     uv run generate_descriptions.py
 
+# Show the current project version
+version:
+    #!/usr/bin/env node
+    const fs = require("fs");
+    const path = require("path");
+
+    const readJson = (filePath) => JSON.parse(fs.readFileSync(path.join(process.cwd(), filePath), "utf8"));
+
+    const pkg = readJson("package.json");
+    const lock = readJson("package-lock.json");
+    const pyproject = fs.readFileSync(path.join(process.cwd(), "pyproject.toml"), "utf8");
+    const pyVersion = pyproject.match(/^version = "([^"]+)"$/m)?.[1];
+
+    const versions = [
+      ["package.json", pkg.version],
+      ["package-lock.json", lock.version],
+      ['package-lock.json packages[""]', lock.packages?.[""]?.version],
+      ["pyproject.toml", pyVersion],
+    ];
+
+    let failed = false;
+    for (const [source, value] of versions) {
+      if (!value) {
+        console.error(`${source}: missing version`);
+        failed = true;
+      } else {
+        console.log(`${source}: ${value}`);
+      }
+    }
+
+    const expected = pkg.version;
+    for (const [source, value] of versions) {
+      if (value && value !== expected) {
+        console.error(`${source}: expected ${expected}, found ${value}`);
+        failed = true;
+      }
+    }
+
+    if (failed) {
+      process.exit(1);
+    }
+    console.log(`current: ${expected}`);
+
+# Update the project version
+version-bump $version:
+    #!/usr/bin/env node
+    const fs = require("fs");
+
+    const nextVersion = process.env.version;
+    const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+
+    if (!versionPattern.test(nextVersion)) {
+      console.error(`Invalid version: ${nextVersion}`);
+      console.error("Use a SemVer release version, for example 1.2.3.");
+      process.exit(1);
+    }
+
+    const packagePath = "package.json";
+    const lockPath = "package-lock.json";
+    const pyprojectPath = "pyproject.toml";
+
+    const pkg = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+    const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+    const pyproject = fs.readFileSync(pyprojectPath, "utf8");
+
+    if (!lock.packages || !lock.packages[""]) {
+      console.error('package-lock.json is missing packages[""] metadata.');
+      process.exit(1);
+    }
+    if (!/^version = "([^"]+)"$/m.test(pyproject)) {
+      console.error("pyproject.toml is missing a project version.");
+      process.exit(1);
+    }
+
+    pkg.version = nextVersion;
+    lock.version = nextVersion;
+    lock.packages[""].version = nextVersion;
+    const nextPyproject = pyproject.replace(/^version = "([^"]+)"$/m, `version = "${nextVersion}"`);
+
+    fs.writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`);
+    fs.writeFileSync(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+    fs.writeFileSync(pyprojectPath, nextPyproject);
+    console.log(`Updated version to ${nextVersion}`);
+
 # Clean generated data files
 clean:
     npm run clean

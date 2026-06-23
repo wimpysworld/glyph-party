@@ -44,6 +44,9 @@ npm run dev
 
 **Requirements:** Node.js 16+, Python 3, and a sense of style.
 
+> [!TIP]
+> The browser code uses ES modules. Serve the site over HTTP, for example with `just dev`, instead of opening `src/index.html` from disk.
+
 > [!NOTE]
 > To generate descriptions for glyphs using AI, you'll need a Google Gemini API key and `uv` installed. You can install `uv` with this command:
 >
@@ -79,13 +82,18 @@ just help                   # When you forget these commands
 
 ## 🚀 Deployment
 
-Designed for [Cloudflare Pages](https://pages.cloudflare.com) but works anywhere static sites are welcome:
+Designed for [Cloudflare Pages](https://pages.cloudflare.com) but works anywhere static sites are welcome.
 
-1. Push to GitHub
-2. Connect to Cloudflare Pages
-3. Set build command: `npm run build`
-4. Set output directory: `src`
-5. Marvel at your creation
+GitHub Actions deploys the site with the reusable `.github/workflows/deploy-pages.yml` workflow:
+
+- Pull requests from this repository deploy a preview and add the preview URL as a PR comment.
+- Stable SemVer tags, such as `1.2.3`, deploy production from `main`.
+- The workflows expect `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
+
+For a manual Cloudflare Pages setup, use:
+
+- Build command: `npm run build`
+- Output directory: `src`
 
 ## 🎯 Perfect For
 

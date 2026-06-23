@@ -30,13 +30,16 @@ version:
     const pkg = readJson("package.json");
     const lock = readJson("package-lock.json");
     const pyproject = fs.readFileSync(path.join(process.cwd(), "pyproject.toml"), "utf8");
+    const uvLock = fs.readFileSync(path.join(process.cwd(), "uv.lock"), "utf8");
     const pyVersion = pyproject.match(/^version = "([^"]+)"$/m)?.[1];
+    const uvVersion = uvLock.match(/\[\[package\]\]\nname = "glyph-party"\nversion = "([^"]+)"/)?.[1];
 
     const versions = [
       ["package.json", pkg.version],
       ["package-lock.json", lock.version],
       ['package-lock.json packages[""]', lock.packages?.[""]?.version],
       ["pyproject.toml", pyVersion],
+      ["uv.lock glyph-party", uvVersion],
     ];
 
     let failed = false;
@@ -64,44 +67,31 @@ version:
 
 # Update the project version
 version-bump $version:
-    #!/usr/bin/env node
+    #!/usr/bin/env bash
+    set -euo pipefail
+    version_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+    if [[ ! "$version" =~ $version_pattern ]]; then
+        echo "Invalid version: $version" >&2
+        echo "Use a SemVer release version, for example 1.2.3." >&2
+        exit 1
+    fi
+    npm version --no-git-tag-version "$version"
+    node - "$version" <<'NODE'
     const fs = require("fs");
-
-    const nextVersion = process.env.version;
-    const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
-
-    if (!versionPattern.test(nextVersion)) {
-      console.error(`Invalid version: ${nextVersion}`);
-      console.error("Use a SemVer release version, for example 1.2.3.");
-      process.exit(1);
-    }
-
-    const packagePath = "package.json";
-    const lockPath = "package-lock.json";
+    const nextVersion = process.argv[2];
     const pyprojectPath = "pyproject.toml";
-
-    const pkg = JSON.parse(fs.readFileSync(packagePath, "utf8"));
-    const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
     const pyproject = fs.readFileSync(pyprojectPath, "utf8");
-
-    if (!lock.packages || !lock.packages[""]) {
-      console.error('package-lock.json is missing packages[""] metadata.');
-      process.exit(1);
-    }
     if (!/^version = "([^"]+)"$/m.test(pyproject)) {
       console.error("pyproject.toml is missing a project version.");
       process.exit(1);
     }
-
-    pkg.version = nextVersion;
-    lock.version = nextVersion;
-    lock.packages[""].version = nextVersion;
-    const nextPyproject = pyproject.replace(/^version = "([^"]+)"$/m, `version = "${nextVersion}"`);
-
-    fs.writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`);
-    fs.writeFileSync(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
-    fs.writeFileSync(pyprojectPath, nextPyproject);
-    console.log(`Updated version to ${nextVersion}`);
+    fs.writeFileSync(
+      pyprojectPath,
+      pyproject.replace(/^version = "([^"]+)"$/m, `version = "${nextVersion}"`),
+    );
+    NODE
+    uv lock
+    echo "Updated version to $version"
 
 # Clean generated data files
 clean:
@@ -113,7 +103,7 @@ rebuild: clean build
 # Start development server
 serve:
     @echo "🚀 Starting Glyph Party development server..."
-    cd src && python3 -m http.server 8000
+    npm run dev
 
 # Open browser to the application
 open:
@@ -122,13 +112,7 @@ open:
     if [[ "$OSTYPE" == "darwin"* ]]; then open http://localhost:8000; elif [[ "$OSTYPE" == "linux-gnu"* ]]; then xdg-open http://localhost:8000; else echo "Please open http://localhost:8000 in your browser"; fi
 
 # Start server and open browser in one command
-dev:
-    #!/usr/bin/env bash
-    echo "✨ Starting Glyph Party development environment..."
-    echo "🌐 Opening browser..."
-    if [[ "$OSTYPE" == "darwin"* ]]; then open http://localhost:8000 2>/dev/null || true; elif [[ "$OSTYPE" == "linux-gnu"* ]]; then xdg-open http://localhost:8000 2>/dev/null || true; else echo "Please open http://localhost:8000 in your browser"; fi
-    echo "🚀 Starting server..."
-    cd src && python3 -m http.server 8000
+dev: open serve
 
 # Complete setup for new development environment
 setup: install build
@@ -185,30 +169,7 @@ quick: rebuild dev
 
 # Show help for common commands
 help:
-    @echo "🎉 Glyph Party - Just Commands"
-    @echo "============================="
-    @echo ""
-    @echo "🚀 Getting started:"
-    @echo "  just setup                  # Complete setup for new environment"
-    @echo "  just dev                    # Start development server + open browser"
-    @echo ""
-    @echo "🔧 Development:"
-    @echo "  just build                  # Generate Unicode data"
-    @echo "  just generate-descriptions  # Generate glyph descriptions"
-    @echo "  just serve                  # Start development server"
-    @echo "  just open                   # Open browser to app"
-    @echo "  just quick                  # Rebuild + serve + open"
-    @echo ""
-    @echo "📊 Information:"
-    @echo "  just stats                  # Show project statistics"
-    @echo "  just check                  # Verify setup"
-    @echo ""
-    @echo "🧹 Maintenance:"
-    @echo "  just clean                  # Remove generated files"
-    @echo "  just rebuild                # Clean + build fresh"
-    @echo ""
-    @echo "🌐 The Unicode data contains 10,000+ beautiful characters"
-    @echo "   perfect for adding visual flair to terminal applications!"
+    @just --list
 
 # Run development server in watch mode (if you have watchexec installed)
 watch:

@@ -2,10 +2,14 @@ export function filterCharacters(characters, filters) {
   const search = filters.search || "";
   const category = filters.category || "";
   const block = filters.block || "";
+  const searchTerms = search
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((term) => term.toLowerCase());
 
   return characters.filter((char) => {
-    if (search) {
-      const searchTerms = search.trim().split(/\s+/).filter(Boolean);
+    if (searchTerms.length > 0) {
       const searchableText = [
         char.name.toLowerCase(),
         char.code.toLowerCase(),

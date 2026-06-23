@@ -5,9 +5,9 @@
   "main": "src/index.html",
   "scripts": {
     "build:data": "node build-unicode-data.js",
-    "dev": "python -m http.server 8000",
+    "dev": "python3 -m http.server 8000 --directory src",
     "build": "npm run build:data && echo 'Ready for deployment to Cloudflare Pages!'",
-    "clean": "rm -rf src/*.json"
+    "clean": "rm -f src/unicode-data.json src/unicode-data.min.json"
   },
   "keywords": [
     "unicode",

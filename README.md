@@ -73,11 +73,14 @@ Using [just](https://github.com/casey/just) because Makefiles are so last decade
 ```bash
 just setup                  # Complete setup for new projects
 just dev                    # Start development server + open browser
+just serve                  # Start development server only
 just build                  # Generate fresh Unicode data
+just clean                  # Remove generated Unicode data files
+just rebuild                # Clean + build fresh data
 just generate-descriptions  # Generate AI descriptions for glyphs
 just stats                  # Show project statistics
 just check                  # Verify everything's working
-just help                   # When you forget these commands
+just help                   # List every recipe
 ```
 
 ## 🚀 Deployment

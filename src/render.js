@@ -14,16 +14,15 @@ export function renderCharacters(characters, callbacks) {
   grid.classList.remove("hidden");
 
   const charactersToRender = characters.slice(0, MAX_RENDER);
-  grid.replaceChildren();
-
-  charactersToRender.forEach((char) => {
-    const card = createCharacterCard(char, callbacks);
-    grid.appendChild(card);
-  });
+  const nodes = charactersToRender.map((char) =>
+    createCharacterCard(char, callbacks),
+  );
 
   if (characters.length > MAX_RENDER) {
-    grid.appendChild(createLoadMore(characters.length));
+    nodes.push(createLoadMore(characters.length));
   }
+
+  grid.replaceChildren(...nodes);
 }
 
 function createCharacterCard(char, callbacks) {

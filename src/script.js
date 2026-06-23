@@ -29,7 +29,7 @@ class GlyphParty {
     this.bindEvents();
     await this.loadData();
     this.setupFilters();
-    this.showAllCharacters();
+    this.filterCharacters();
     this.hideLoading();
     initThemeToggle();
   }
@@ -58,7 +58,7 @@ class GlyphParty {
     searchInput.addEventListener(
       "input",
       this.debounce((event) => {
-        this.currentSearch = event.target.value.toLowerCase();
+        this.currentSearch = event.target.value;
         this.filterCharacters();
       }, 300),
     );
@@ -163,12 +163,6 @@ class GlyphParty {
     this.updateVisibleCount();
   }
 
-  showAllCharacters() {
-    this.filteredCharacters = [...this.characters];
-    this.renderCharacters();
-    this.updateVisibleCount();
-  }
-
   renderCharacters() {
     renderCharacters(this.filteredCharacters, {
       onCopy: copyCharacter,
@@ -188,7 +182,7 @@ class GlyphParty {
     document.getElementById("category-filter").value = "";
     document.getElementById("block-filter").value = "";
 
-    this.showAllCharacters();
+    this.filterCharacters();
   }
 
   updateStats() {

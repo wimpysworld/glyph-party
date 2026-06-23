@@ -26,6 +26,12 @@
   --base: #1e1e2e;
   --mantle: #181825;
   --crust: #11111b;
+  --focus-ring: rgba(203, 166, 247, 0.2);
+  --elevated-shadow: rgba(0, 0, 0, 0.3);
+  --modal-overlay: rgba(0, 0, 0, 0.8);
+  --modal-shadow: rgba(0, 0, 0, 0.5);
+  --mastodon-hover: #6364ff;
+  --bluesky-hover: #00bcd4;
 }
 
 /* Catppuccin Latte light theme */
@@ -56,6 +62,12 @@
   --base: #eff1f5;
   --mantle: #e6e9ef;
   --crust: #dce0e8;
+  --focus-ring: rgba(136, 57, 239, 0.2);
+  --elevated-shadow: rgba(76, 79, 105, 0.18);
+  --modal-overlay: rgba(76, 79, 105, 0.6);
+  --modal-shadow: rgba(76, 79, 105, 0.25);
+  --mastodon-hover: #6364ff;
+  --bluesky-hover: #00bcd4;
 }
 
 * {
@@ -208,7 +220,7 @@ body {
 #search-input:focus {
   outline: none;
   border-color: var(--mauve);
-  box-shadow: 0 0 0 3px rgba(203, 166, 247, 0.2);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 #search-input::placeholder {
@@ -355,7 +367,7 @@ body {
   background: var(--surface1);
   border-color: var(--mauve);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 25px var(--elevated-shadow);
 }
 
 .character-char {
@@ -470,7 +482,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--modal-overlay);
   backdrop-filter: blur(4px);
 }
 
@@ -482,7 +494,7 @@ body {
   max-width: 500px;
   width: 100%;
   position: relative;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px var(--modal-shadow);
 }
 
 .modal-close {
@@ -607,7 +619,7 @@ body {
   padding: 1rem 1.5rem;
   border-radius: 0.75rem;
   font-weight: 500;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 25px var(--elevated-shadow);
   animation: toastSlide 0.3s ease-out;
   max-width: 300px;
 }
@@ -663,11 +675,11 @@ body {
 }
 
 .footer-links a[aria-label*="Mastodon"]:hover {
-  color: #6364ff;
+  color: var(--mastodon-hover);
 }
 
 .footer-links a[aria-label*="Bluesky"]:hover {
-  color: #00bcd4;
+  color: var(--bluesky-hover);
 }
 
 .footer-links a[aria-label*="GitHub"]:hover {

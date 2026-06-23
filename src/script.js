@@ -10,7 +10,6 @@ class GlyphParty {
     this.currentSearch = "";
     this.currentCategory = "";
     this.currentBlock = "";
-    this.isLoading = true;
     this.currentModalChar = null;
     this.themeToggle = null;
     this.STORAGE_KEY = "glyph-party-theme";
@@ -126,6 +125,12 @@ class GlyphParty {
     const categories = [
       ...new Set(this.characters.map((char) => char.category)),
     ].sort();
+    const categoryLabels = new Map();
+    this.characters.forEach((char) => {
+      if (!categoryLabels.has(char.category)) {
+        categoryLabels.set(char.category, char.categoryName || char.category);
+      }
+    });
     const blocks = [
       ...new Set(this.characters.map((char) => char.block)),
     ].sort();
@@ -133,7 +138,7 @@ class GlyphParty {
     categories.forEach((category) => {
       const option = document.createElement("option");
       option.value = category;
-      option.textContent = this.getCategoryName(category);
+      option.textContent = categoryLabels.get(category) || category;
       categoryFilter.appendChild(option);
     });
 
@@ -143,35 +148,6 @@ class GlyphParty {
       option.textContent = block;
       blockFilter.appendChild(option);
     });
-  }
-
-  getCategoryName(category) {
-    const categoryNames = {
-      Sm: "Mathematical Symbols",
-      So: "Other Symbols",
-      Ps: "Open Punctuation",
-      Pe: "Close Punctuation",
-      Pd: "Dash Punctuation",
-      Po: "Other Punctuation",
-      Sc: "Currency Symbols",
-      Sk: "Modifier Symbols",
-      Mn: "Nonspacing Marks",
-      Mc: "Spacing Marks",
-      Me: "Enclosing Marks",
-      Nd: "Decimal Numbers",
-      Nl: "Letter Numbers",
-      No: "Other Numbers",
-      Zs: "Space Separators",
-      Zl: "Line Separators",
-      Zp: "Paragraph Separators",
-      Cc: "Control Characters",
-      Cf: "Format Characters",
-      Cs: "Surrogate Characters",
-      Co: "Private Use",
-      Cn: "Unassigned",
-    };
-
-    return categoryNames[category] || category;
   }
 
   filterCharacters() {
@@ -241,7 +217,7 @@ class GlyphParty {
     const maxRender = 500;
     const charactersToRender = this.filteredCharacters.slice(0, maxRender);
 
-    grid.innerHTML = "";
+    grid.replaceChildren();
 
     charactersToRender.forEach((char) => {
       const card = this.createCharacterCard(char);
@@ -251,12 +227,15 @@ class GlyphParty {
     if (this.filteredCharacters.length > maxRender) {
       const loadMore = document.createElement("div");
       loadMore.className = "load-more";
-      loadMore.innerHTML = `
-                <p>Showing first ${maxRender} of ${this.filteredCharacters.length.toLocaleString()} characters</p>
-                <p style="font-size: 0.875rem; color: var(--subtext0); margin-top: 0.5rem;">
-                    Use search or filters to narrow results
-                </p>
-            `;
+      const loadMoreCount = document.createElement("p");
+      const renderedCount = this.filteredCharacters.length.toLocaleString();
+      loadMoreCount.textContent =
+        `Showing first ${maxRender} of ${renderedCount} characters`;
+      const loadMoreHint = document.createElement("p");
+      loadMoreHint.textContent = "Use search or filters to narrow results";
+      loadMoreHint.style.cssText =
+        "font-size: 0.875rem; color: var(--subtext0); margin-top: 0.5rem;";
+      loadMore.append(loadMoreCount, loadMoreHint);
       loadMore.style.cssText = `
                 grid-column: 1 / -1;
                 text-align: center;
@@ -273,14 +252,29 @@ class GlyphParty {
   createCharacterCard(char) {
     const card = document.createElement("div");
     card.className = "character-card";
-    card.innerHTML = `
-            <div class="character-char">${char.char}</div>
-            <div class="character-code">U+${char.code}</div>
-            <div class="character-name">${char.name}</div>
-            <button class="character-info-btn" aria-label="Show details for ${char.name}">
-                <i class="fas fa-info-circle"></i>
-            </button>
-        `;
+
+    const character = document.createElement("div");
+    character.className = "character-char";
+    character.textContent = char.char;
+
+    const code = document.createElement("div");
+    code.className = "character-code";
+    code.textContent = `U+${char.code}`;
+
+    const name = document.createElement("div");
+    name.className = "character-name";
+    name.textContent = char.name;
+
+    const infoButton = document.createElement("button");
+    infoButton.className = "character-info-btn";
+    infoButton.type = "button";
+    infoButton.setAttribute("aria-label", `Show details for ${char.name}`);
+
+    const infoIcon = document.createElement("i");
+    infoIcon.className = "fas fa-info-circle";
+    infoButton.appendChild(infoIcon);
+
+    card.append(character, code, name, infoButton);
 
     // Card clicks copy unless the detail button handled the click.
     card.addEventListener("click", (e) => {
@@ -290,8 +284,7 @@ class GlyphParty {
       }
     });
 
-    const infoBtn = card.querySelector(".character-info-btn");
-    infoBtn.addEventListener("click", (e) => {
+    infoButton.addEventListener("click", (e) => {
       e.stopPropagation();
       this.showCharacterDetail(char);
     });
@@ -316,7 +309,7 @@ class GlyphParty {
     document.getElementById("modal-name").textContent = char.name;
     document.getElementById("modal-code").textContent = `U+${char.code}`;
     document.getElementById("modal-category").textContent =
-      this.getCategoryName(char.category);
+      char.categoryName || char.category;
     document.getElementById("modal-block").textContent = char.block;
     document.getElementById("modal-decimal").textContent = char.decimal;
 
@@ -376,7 +369,6 @@ class GlyphParty {
 
   hideLoading() {
     document.getElementById("loading").classList.add("hidden");
-    this.isLoading = false;
   }
 
   async copyToClipboard(text, successMessage = "Copied!") {
@@ -428,23 +420,40 @@ class GlyphParty {
 
   showError(message) {
     this.showToast(message, "error");
-    document.getElementById("loading").innerHTML = `
-            <div style="text-align: center; padding: 4rem 0; color: var(--red);">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-                <h3>Error Loading Data</h3>
-                <p>${message}</p>
-                <button onclick="location.reload()" style="
-                    margin-top: 1rem;
-                    padding: 0.75rem 1.5rem;
-                    background: var(--red);
-                    color: var(--crust);
-                    border: none;
-                    border-radius: 0.5rem;
-                    cursor: pointer;
-                    font-size: 0.875rem;
-                ">Reload Page</button>
-            </div>
-        `;
+    const loading = document.getElementById("loading");
+    const errorPanel = document.createElement("div");
+    errorPanel.style.cssText =
+      "text-align: center; padding: 4rem 0; color: var(--red);";
+
+    const icon = document.createElement("div");
+    icon.style.cssText = "font-size: 3rem; margin-bottom: 1rem;";
+    icon.textContent = "⚠️";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Error Loading Data";
+
+    const body = document.createElement("p");
+    body.textContent = message;
+
+    const reloadButton = document.createElement("button");
+    reloadButton.type = "button";
+    reloadButton.textContent = "Reload Page";
+    reloadButton.style.cssText = `
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--red);
+      color: var(--crust);
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+    `;
+    reloadButton.addEventListener("click", () => {
+      location.reload();
+    });
+
+    errorPanel.append(icon, heading, body, reloadButton);
+    loading.replaceChildren(errorPanel);
   }
 
   debounce(func, wait) {
@@ -545,17 +554,3 @@ class GlyphParty {
 document.addEventListener("DOMContentLoaded", () => {
   window.glyphParty = new GlyphParty();
 });
-
-// Service worker registration for PWA (optional)
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((registration) => {
-        console.log("SW registered: ", registration);
-      })
-      .catch((registrationError) => {
-        console.log("SW registration failed: ", registrationError);
-      });
-  });
-}

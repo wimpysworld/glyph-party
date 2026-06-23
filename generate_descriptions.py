@@ -57,11 +57,11 @@ def filter_characters_to_process(
     descriptions: dict,
 ) -> list[dict]:
     """Filter out characters that already have descriptions."""
-    characters_to_process = []
-    for character_data in characters:
-        codepoint = character_data["code"]
-        if codepoint not in descriptions:
-            characters_to_process.append(character_data)
+    characters_to_process = [
+        character_data
+        for character_data in characters
+        if character_data["code"] not in descriptions
+    ]
 
     print(f"{len(characters_to_process)} characters to process.")
     return characters_to_process
@@ -69,9 +69,16 @@ def filter_characters_to_process(
 
 def get_system_prompt(characters_data: list[dict]) -> str:
     """Generate system prompt for the Gemini API."""
-    stringified_data = ""
-    for item in characters_data:
-        stringified_data += f"- {item['char']} (Codepoint: {item['code']}, Name: {item['name']}, Block: {item['block']})\n"
+    character_lines = [
+        (
+            f"- {item['char']} (Codepoint: {item['code']}, "
+            f"Name: {item['name']}, Block: {item['block']})"
+        )
+        for item in characters_data
+    ]
+    stringified_data = "\n".join(character_lines)
+    if stringified_data:
+        stringified_data += "\n"
 
     template = dedent(
         """\
@@ -133,7 +140,6 @@ def generate_parallel(
     client: genai.Client,
     characters_to_process: list[dict],
     descriptions: dict,
-    descriptions_path: str,
     batch_size: int = 25,
     max_workers: int = 5,
 ) -> dict:
@@ -164,9 +170,6 @@ def generate_parallel(
             tqdm.write(
                 f"Warning: No descriptions returned for batch at index {result['index']}."
             )
-
-    with open(descriptions_path, "w", encoding="utf-8") as f:
-        json.dump(descriptions, f, ensure_ascii=False, indent=2)
 
     print(f"Generated {len(descriptions)} descriptions total.")
     return descriptions
@@ -207,9 +210,7 @@ def main():
         print("All characters already have descriptions.")
         return
 
-    descriptions = generate_parallel(
-        client, characters_to_process, descriptions, descriptions_path
-    )
+    descriptions = generate_parallel(client, characters_to_process, descriptions)
     save_sorted_descriptions(descriptions, descriptions_path)
 
 

@@ -19,37 +19,78 @@ if (fs.existsSync(descPath)) {
   console.log(`📝 Loaded ${Object.keys(descriptions).length} descriptions`);
 }
 
+function loadPackageJson() {
+  try {
+    return require("./package.json");
+  } catch (error) {
+    return { version: "unknown", devDependencies: {} };
+  }
+}
+
 // Load UCD source tables and package versions.
-let unicodeData, blocks, categories, packageJson, ucdPackageJson;
+let unicodeData, blocks, ucdPackageJson;
+const packageJson = loadPackageJson();
 
 try {
   unicodeData = require("ucd-full/UnicodeData.json");
   blocks = require("ucd-full/Blocks.json");
-  categories = require("ucd-full/extracted/DerivedGeneralCategory.json");
-  packageJson = require("./package.json");
   ucdPackageJson = require("ucd-full/package.json");
 
   console.log("✅ Loaded UCD data files");
   console.log(`📦 Glyph Party version: ${packageJson.version}`);
   console.log(`📊 UCD package version: ${ucdPackageJson.version}`);
 } catch (error) {
+  const ucdVersion = packageJson.devDependencies["ucd-full"] || "^17.0.0";
   console.error("❌ Error loading UCD data:");
   console.error("Make sure you have installed ucd-full:");
-  console.error("npm install --save-dev ucd-full@^16.0.1\n");
+  console.error(`npm install --save-dev ucd-full@${ucdVersion}\n`);
   process.exit(1);
 }
 
-// Categories that are visually interesting for terminal use
-const INTERESTING_CATEGORIES = {
-  Sm: "Mathematical Symbols",
-  So: "Other Symbols",
+const CATEGORY_NAMES = {
+  Lu: "Uppercase Letter",
+  Ll: "Lowercase Letter",
+  Lt: "Titlecase Letter",
+  Lm: "Modifier Letter",
+  Lo: "Other Letter",
+  Mn: "Nonspacing Marks",
+  Mc: "Spacing Marks",
+  Me: "Enclosing Marks",
+  Nd: "Decimal Numbers",
+  Nl: "Letter Numbers",
+  No: "Other Numbers",
+  Pc: "Connector Punctuation",
+  Pd: "Dash Punctuation",
   Ps: "Open Punctuation",
   Pe: "Close Punctuation",
-  Pd: "Dash Punctuation",
+  Pi: "Initial Quote Punctuation",
+  Pf: "Final Quote Punctuation",
   Po: "Other Punctuation",
+  Sm: "Mathematical Symbols",
   Sc: "Currency Symbols",
   Sk: "Modifier Symbols",
+  So: "Other Symbols",
+  Zs: "Space Separators",
+  Zl: "Line Separators",
+  Zp: "Paragraph Separators",
+  Cc: "Control Characters",
+  Cf: "Format Characters",
+  Cs: "Surrogate Characters",
+  Co: "Private Use",
+  Cn: "Unassigned",
 };
+
+// Categories that are visually interesting for terminal use
+const INTERESTING_CATEGORIES = new Set([
+  "Sm",
+  "So",
+  "Ps",
+  "Pe",
+  "Pd",
+  "Po",
+  "Sc",
+  "Sk",
+]);
 
 // Specific Unicode blocks that are great for terminal flair
 const PRIORITY_BLOCKS = [
@@ -91,30 +132,25 @@ function hexToChar(hex) {
   }
 }
 
-// Create a map of codepoint ranges to block names
+// Create parsed codepoint ranges for block lookup
 function createBlockMap(blocks) {
-  const blockMap = new Map();
-
-  blocks.Blocks.forEach((entry) => {
+  return blocks.Blocks.map((entry) => {
     const [start, end] = entry.range;
-    const startCode = parseInt(start, 16);
-    const endCode = parseInt(end, 16);
-    const blockName = entry.block;
-
-    blockMap.set(`${startCode}-${endCode}`, blockName);
+    return {
+      start: parseInt(start, 16),
+      end: parseInt(end, 16),
+      name: entry.block,
+    };
   });
-
-  return blockMap;
 }
 
 // Find which block a codepoint belongs to
 function getBlockName(codepointHex, blockMap) {
   const codepoint = parseInt(codepointHex, 16);
 
-  for (const [range, blockName] of blockMap) {
-    const [start, end] = range.split("-").map(Number);
-    if (codepoint >= start && codepoint <= end) {
-      return blockName;
+  for (const block of blockMap) {
+    if (codepoint >= block.start && codepoint <= block.end) {
+      return block.name;
     }
   }
 
@@ -165,7 +201,7 @@ unicodeData.UnicodeData.forEach((entry) => {
   const blockName = getBlockName(codepoint, blockMap);
 
   // Filter for interesting categories or priority blocks
-  const isInterestingCategory = INTERESTING_CATEGORIES.hasOwnProperty(category);
+  const isInterestingCategory = INTERESTING_CATEGORIES.has(category);
   const isPriorityBlock = PRIORITY_BLOCKS.includes(blockName);
 
   if (
@@ -178,7 +214,7 @@ unicodeData.UnicodeData.forEach((entry) => {
       name: name,
       description: descriptions[codepoint.toUpperCase()] || "",
       category: category,
-      categoryName: INTERESTING_CATEGORIES[category] || "Other",
+      categoryName: CATEGORY_NAMES[category] || category,
       block: blockName,
       decimal: parseInt(codepoint, 16),
     });
@@ -255,25 +291,6 @@ fs.writeFileSync(
   }),
 );
 
-// Write category reference
-const categoryFile = path.join(outputDir, "categories.json");
-fs.writeFileSync(
-  categoryFile,
-  JSON.stringify(
-    {
-      categories: INTERESTING_CATEGORIES,
-      priorityBlocks: PRIORITY_BLOCKS,
-      versions: {
-        glyphParty: packageJson.version,
-        unicode: ucdPackageJson.version,
-        generatedAt: new Date().toISOString(),
-      },
-    },
-    null,
-    2,
-  ),
-);
-
 console.log("\n✨ Glyph Party data generation complete!");
 console.log(`📊 Statistics:`);
 console.log(`   Total characters: ${filteredCount.toLocaleString()}`);
@@ -292,7 +309,6 @@ console.log(
 console.log(
   `   ${compactDataFile} (${Math.round(fs.statSync(compactDataFile).size / 1024)}KB)`,
 );
-console.log(`   ${categoryFile}`);
 
 console.log(`\n🎉 Ready to build your gorgeous Glyph Party interface!`);
 

@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  deployments: write
   pull-requests: write
 
 jobs:
@@ -28,28 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Comment on PR
-        uses: actions/github-script@v9
+        run: |
+          body=$(printf '## Preview Deployment\n\n| Status | URL |\n|--------|-----|\n| Deployed | %s |\n\n**Branch:** `%s`\n**Commit:** `%s`' "${DEPLOYMENT_URL}" "${PREVIEW_BRANCH}" "${PREVIEW_COMMIT}")
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --body "${body}"
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOYMENT_URL: ${{ needs.deploy-preview.outputs.deployment_url }}
           PREVIEW_BRANCH: ${{ github.head_ref }}
           PREVIEW_COMMIT: ${{ github.sha }}
-        with:
-          script: |
-            const deploymentUrl = process.env.DEPLOYMENT_URL;
-            const branch = process.env.PREVIEW_BRANCH;
-            const commit = process.env.PREVIEW_COMMIT;
-            const body = `## Preview Deployment
-
-            | Status | URL |
-            |--------|-----|
-            | Deployed | ${deploymentUrl} |
-
-            **Branch:** \`${branch}\`
-            **Commit:** \`${commit}\``;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });

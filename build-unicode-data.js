@@ -188,12 +188,8 @@ function isUsefulCharacter(char, name) {
 
 function selectGlyphs(unicodeData, blockMap, descriptions) {
   const glyphData = [];
-  let processedCount = 0;
-  let filteredCount = 0;
 
-  unicodeData.UnicodeData.forEach((entry) => {
-    processedCount++;
-
+  unicodeData.UnicodeData.forEach((entry, index) => {
     const codepoint = entry.codepoint;
     const category = entry.category;
     const name = entry.name;
@@ -216,9 +212,9 @@ function selectGlyphs(unicodeData, blockMap, descriptions) {
         block: blockName,
         decimal: parseInt(codepoint, 16),
       });
-      filteredCount++;
     }
 
+    const processedCount = index + 1;
     if (processedCount % 10000 === 0) {
       console.log(`   Processed ${processedCount} characters...`);
     }
@@ -226,25 +222,20 @@ function selectGlyphs(unicodeData, blockMap, descriptions) {
 
   glyphData.sort((a, b) => a.decimal - b.decimal);
 
-  return {
-    glyphData,
-    processedCount,
-    filteredCount,
-  };
+  return glyphData;
 }
 
 function groupGlyphs(glyphData) {
   const categorizedData = {};
+  const blockData = {};
+
   glyphData.forEach((glyph) => {
     const cat = glyph.category;
     if (!categorizedData[cat]) {
       categorizedData[cat] = [];
     }
     categorizedData[cat].push(glyph);
-  });
 
-  const blockData = {};
-  glyphData.forEach((glyph) => {
     const block = glyph.block;
     if (!blockData[block]) {
       blockData[block] = [];
@@ -256,14 +247,14 @@ function groupGlyphs(glyphData) {
 }
 
 function createStats({
-  filteredCount,
+  glyphData,
   categorizedData,
   blockData,
   packageJson,
   ucdPackageJson,
 }) {
   return {
-    totalCharacters: filteredCount,
+    totalCharacters: glyphData.length,
     categories: Object.keys(categorizedData).length,
     blocks: Object.keys(blockData).length,
     generatedAt: new Date().toISOString(),
@@ -272,14 +263,8 @@ function createStats({
   };
 }
 
-function ensureOutputDir(outputDir) {
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-}
-
 function writeDataFiles(outputDir, stats, glyphData, categorizedData, blockData) {
-  ensureOutputDir(outputDir);
+  fs.mkdirSync(outputDir, { recursive: true });
 
   const mainDataFile = path.join(outputDir, "unicode-data.json");
   fs.writeFileSync(
@@ -309,10 +294,9 @@ function writeDataFiles(outputDir, stats, glyphData, categorizedData, blockData)
 }
 
 function printSummary({
-  filteredCount,
   categorizedData,
   blockData,
-  processedCount,
+  unicodeData,
   packageJson,
   ucdPackageJson,
   mainDataFile,
@@ -321,11 +305,11 @@ function printSummary({
 }) {
   console.log("\n✨ Glyph Party data generation complete!");
   console.log(`📊 Statistics:`);
-  console.log(`   Total characters: ${filteredCount.toLocaleString()}`);
+  console.log(`   Total characters: ${glyphData.length.toLocaleString()}`);
   console.log(`   Categories: ${Object.keys(categorizedData).length}`);
   console.log(`   Blocks: ${Object.keys(blockData).length}`);
   console.log(
-    `   Processed: ${processedCount.toLocaleString()} total characters`,
+    `   Processed: ${unicodeData.UnicodeData.length.toLocaleString()} total characters`,
   );
   console.log(`   Glyph Party: v${packageJson.version}`);
   console.log(`   Unicode: ${ucdPackageJson.version}`);
@@ -361,7 +345,7 @@ function main() {
   const blockMap = createBlockMap(blocks);
 
   console.log("🔍 Processing Unicode characters...");
-  const { glyphData, processedCount, filteredCount } = selectGlyphs(
+  const glyphData = selectGlyphs(
     unicodeData,
     blockMap,
     descriptions,
@@ -369,7 +353,7 @@ function main() {
 
   const { categorizedData, blockData } = groupGlyphs(glyphData);
   const stats = createStats({
-    filteredCount,
+    glyphData,
     categorizedData,
     blockData,
     packageJson,
@@ -384,10 +368,9 @@ function main() {
   );
 
   printSummary({
-    filteredCount,
     categorizedData,
     blockData,
-    processedCount,
+    unicodeData,
     packageJson,
     ucdPackageJson,
     mainDataFile,

@@ -363,11 +363,17 @@ body {
   overflow: hidden;
 }
 
-.character-card:hover {
+.character-card:hover,
+.character-card:focus-visible {
   background: var(--surface1);
   border-color: var(--mauve);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px var(--elevated-shadow);
+}
+
+.character-card:focus-visible {
+  outline: 2px solid var(--mauve);
+  outline-offset: 2px;
 }
 
 .character-char {
@@ -421,7 +427,8 @@ body {
   transform: scale(0.8);
 }
 
-.character-card:hover .character-info-btn {
+.character-card:hover .character-info-btn,
+.character-card:focus-within .character-info-btn {
   opacity: 1;
   transform: scale(1);
 }

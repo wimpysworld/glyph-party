@@ -28,6 +28,9 @@ export function renderCharacters(characters, callbacks) {
 function createCharacterCard(char, callbacks) {
   const card = document.createElement("div");
   card.className = "character-card";
+  card.setAttribute("role", "button");
+  card.setAttribute("tabindex", "0");
+  card.setAttribute("aria-label", `Copy ${char.name}`);
 
   const character = document.createElement("div");
   character.className = "character-char";
@@ -54,6 +57,17 @@ function createCharacterCard(char, callbacks) {
 
   card.addEventListener("click", (event) => {
     if (!event.target.closest(".character-info-btn")) {
+      event.preventDefault();
+      callbacks.onCopy(char, card);
+    }
+  });
+
+  card.addEventListener("keydown", (event) => {
+    if (event.target !== card) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       callbacks.onCopy(char, card);
     }

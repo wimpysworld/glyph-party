@@ -54,6 +54,6 @@ jobs:
           apiToken: ${{ secrets.cloudflare_api_token }}
           accountId: ${{ secrets.cloudflare_account_id }}
           command: >-
-            pages deploy src --project-name=glyph-party --branch=${{ inputs.branch }}
-            ${{ inputs.commit_hash != '' && format('--commit-hash={0}', inputs.commit_hash) || '' }}
-            ${{ inputs.commit_message != '' && format('--commit-message="{0}"', inputs.commit_message) || '' }}
+            pages deploy src --project-name=glyph-party --branch=${{ toJSON(inputs.branch) }}
+            ${{ inputs.commit_hash != '' && format('--commit-hash={0}', toJSON(inputs.commit_hash)) || '' }}
+            ${{ inputs.commit_message != '' && format('--commit-message={0}', toJSON(inputs.commit_message)) || '' }}

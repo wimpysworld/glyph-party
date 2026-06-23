@@ -4,6 +4,7 @@ export async function copyToClipboard(text, successMessage = "Copied!") {
   try {
     await navigator.clipboard.writeText(text);
     showToast(successMessage);
+    return true;
   } catch (error) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -13,18 +14,27 @@ export async function copyToClipboard(text, successMessage = "Copied!") {
     textArea.select();
 
     try {
-      document.execCommand("copy");
+      const copied = document.execCommand("copy");
+      if (!copied) {
+        showToast("Copy failed. Please select and copy manually.", "error");
+        return false;
+      }
       showToast(successMessage);
+      return true;
     } catch (fallbackError) {
       showToast("Copy failed. Please select and copy manually.", "error");
+      return false;
+    } finally {
+      document.body.removeChild(textArea);
     }
-
-    document.body.removeChild(textArea);
   }
 }
 
-export function copyCharacter(char, cardElement) {
-  copyToClipboard(char.char, `${char.char} copied!`);
+export async function copyCharacter(char, cardElement) {
+  const copied = await copyToClipboard(char.char, `${char.char} copied!`);
+  if (!copied) {
+    return;
+  }
 
   cardElement.classList.add("copied");
   setTimeout(() => {

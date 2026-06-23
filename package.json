@@ -1,6 +1,6 @@
 {
   "name": "glyph-party",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A beautiful Unicode character search tool for terminal developers",
   "main": "src/index.html",
   "scripts": {

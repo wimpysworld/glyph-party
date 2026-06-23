@@ -9,44 +9,6 @@
 const fs = require("fs");
 const path = require("path");
 
-console.log("🎉 Building Unicode data for Glyph Party...\n");
-
-// Merge optional generated descriptions into character records.
-let descriptions = {};
-const descPath = path.join(__dirname, "descriptions.json");
-if (fs.existsSync(descPath)) {
-  descriptions = JSON.parse(fs.readFileSync(descPath, "utf8"));
-  console.log(`📝 Loaded ${Object.keys(descriptions).length} descriptions`);
-}
-
-function loadPackageJson() {
-  try {
-    return require("./package.json");
-  } catch (error) {
-    return { version: "unknown", devDependencies: {} };
-  }
-}
-
-// Load UCD source tables and package versions.
-let unicodeData, blocks, ucdPackageJson;
-const packageJson = loadPackageJson();
-
-try {
-  unicodeData = require("ucd-full/UnicodeData.json");
-  blocks = require("ucd-full/Blocks.json");
-  ucdPackageJson = require("ucd-full/package.json");
-
-  console.log("✅ Loaded UCD data files");
-  console.log(`📦 Glyph Party version: ${packageJson.version}`);
-  console.log(`📊 UCD package version: ${ucdPackageJson.version}`);
-} catch (error) {
-  const ucdVersion = packageJson.devDependencies["ucd-full"] || "^17.0.0";
-  console.error("❌ Error loading UCD data:");
-  console.error("Make sure you have installed ucd-full:");
-  console.error(`npm install --save-dev ucd-full@${ucdVersion}\n`);
-  process.exit(1);
-}
-
 const CATEGORY_NAMES = {
   Lu: "Uppercase Letter",
   Ll: "Lowercase Letter",
@@ -80,7 +42,6 @@ const CATEGORY_NAMES = {
   Cn: "Unassigned",
 };
 
-// Categories that are visually interesting for terminal use
 const INTERESTING_CATEGORIES = new Set([
   "Sm",
   "So",
@@ -92,7 +53,6 @@ const INTERESTING_CATEGORIES = new Set([
   "Sk",
 ]);
 
-// Specific Unicode blocks that are great for terminal flair
 const PRIORITY_BLOCKS = [
   "Mathematical Operators",
   "Miscellaneous Mathematical Symbols-A",
@@ -122,7 +82,57 @@ const PRIORITY_BLOCKS = [
   "Supplemental Punctuation",
 ];
 
-// Convert hex codepoint to Unicode character
+function loadPackageJson() {
+  try {
+    return require("./package.json");
+  } catch (error) {
+    return { version: "unknown", devDependencies: {} };
+  }
+}
+
+function loadDescriptions() {
+  const descPath = path.join(__dirname, "descriptions.json");
+  if (!fs.existsSync(descPath)) {
+    return {};
+  }
+
+  const descriptions = JSON.parse(fs.readFileSync(descPath, "utf8"));
+  console.log(`📝 Loaded ${Object.keys(descriptions).length} descriptions`);
+  return descriptions;
+}
+
+function loadUcdData(packageJson) {
+  try {
+    const unicodeData = require("ucd-full/UnicodeData.json");
+    const blocks = require("ucd-full/Blocks.json");
+    const ucdPackageJson = require("ucd-full/package.json");
+
+    console.log("✅ Loaded UCD data files");
+    console.log(`📦 Glyph Party version: ${packageJson.version}`);
+    console.log(`📊 UCD package version: ${ucdPackageJson.version}`);
+
+    return { unicodeData, blocks, ucdPackageJson };
+  } catch (error) {
+    const ucdVersion = packageJson.devDependencies["ucd-full"] || "^17.0.0";
+    console.error("❌ Error loading UCD data:");
+    console.error("Make sure you have installed ucd-full:");
+    console.error(`npm install --save-dev ucd-full@${ucdVersion}\n`);
+    process.exit(1);
+  }
+}
+
+function loadInputs() {
+  const packageJson = loadPackageJson();
+  const descriptions = loadDescriptions();
+  const ucdData = loadUcdData(packageJson);
+
+  return {
+    packageJson,
+    descriptions,
+    ...ucdData,
+  };
+}
+
 function hexToChar(hex) {
   try {
     const codepoint = parseInt(hex, 16);
@@ -132,7 +142,6 @@ function hexToChar(hex) {
   }
 }
 
-// Create parsed codepoint ranges for block lookup
 function createBlockMap(blocks) {
   return blocks.Blocks.map((entry) => {
     const [start, end] = entry.range;
@@ -144,7 +153,6 @@ function createBlockMap(blocks) {
   });
 }
 
-// Find which block a codepoint belongs to
 function getBlockName(codepointHex, blockMap) {
   const codepoint = parseInt(codepointHex, 16);
 
@@ -157,17 +165,14 @@ function getBlockName(codepointHex, blockMap) {
   return "Unknown";
 }
 
-// Check if character is printable and useful
 function isUsefulCharacter(char, name) {
   if (!char || char.length === 0) return false;
 
-  // Exclude code points that do not render as useful glyphs.
   const code = char.codePointAt(0);
   if (code < 32 || (code >= 127 && code <= 159)) return false;
-  if (code >= 0xe000 && code <= 0xf8ff) return false; // Private use
-  if (code >= 0xf0000) return false; // Private use planes
+  if (code >= 0xe000 && code <= 0xf8ff) return false;
+  if (code >= 0xf0000) return false;
 
-  // Skip if name indicates it's not a visible character
   if (
     name &&
     (name.includes("<control>") ||
@@ -181,144 +186,214 @@ function isUsefulCharacter(char, name) {
   return true;
 }
 
-// Build the block map
-console.log("📋 Processing Unicode blocks...");
-const blockMap = createBlockMap(blocks);
+function selectGlyphs(unicodeData, blockMap, descriptions) {
+  const glyphData = [];
+  let processedCount = 0;
+  let filteredCount = 0;
 
-// Process Unicode data
-console.log("🔍 Processing Unicode characters...");
-const glyphData = [];
-let processedCount = 0;
-let filteredCount = 0;
+  unicodeData.UnicodeData.forEach((entry) => {
+    processedCount++;
 
-unicodeData.UnicodeData.forEach((entry) => {
-  processedCount++;
+    const codepoint = entry.codepoint;
+    const category = entry.category;
+    const name = entry.name;
+    const char = hexToChar(codepoint);
+    const blockName = getBlockName(codepoint, blockMap);
+    const isInterestingCategory = INTERESTING_CATEGORIES.has(category);
+    const isPriorityBlock = PRIORITY_BLOCKS.includes(blockName);
 
-  const codepoint = entry.codepoint;
-  const category = entry.category;
-  const name = entry.name;
-  const char = hexToChar(codepoint);
-  const blockName = getBlockName(codepoint, blockMap);
+    if (
+      (isInterestingCategory || isPriorityBlock) &&
+      isUsefulCharacter(char, name)
+    ) {
+      glyphData.push({
+        code: codepoint.toUpperCase(),
+        char: char,
+        name: name,
+        description: descriptions[codepoint.toUpperCase()] || "",
+        category: category,
+        categoryName: CATEGORY_NAMES[category] || category,
+        block: blockName,
+        decimal: parseInt(codepoint, 16),
+      });
+      filteredCount++;
+    }
 
-  // Filter for interesting categories or priority blocks
-  const isInterestingCategory = INTERESTING_CATEGORIES.has(category);
-  const isPriorityBlock = PRIORITY_BLOCKS.includes(blockName);
+    if (processedCount % 10000 === 0) {
+      console.log(`   Processed ${processedCount} characters...`);
+    }
+  });
 
-  if (
-    (isInterestingCategory || isPriorityBlock) &&
-    isUsefulCharacter(char, name)
-  ) {
-    glyphData.push({
-      code: codepoint.toUpperCase(),
-      char: char,
-      name: name,
-      description: descriptions[codepoint.toUpperCase()] || "",
-      category: category,
-      categoryName: CATEGORY_NAMES[category] || category,
-      block: blockName,
-      decimal: parseInt(codepoint, 16),
-    });
-    filteredCount++;
-  }
+  glyphData.sort((a, b) => a.decimal - b.decimal);
 
-  if (processedCount % 10000 === 0) {
-    console.log(`   Processed ${processedCount} characters...`);
-  }
-});
-
-// Sort by Unicode code point for consistent ordering
-glyphData.sort((a, b) => a.decimal - b.decimal);
-
-// Group by category for easier filtering
-const categorizedData = {};
-glyphData.forEach((glyph) => {
-  const cat = glyph.category;
-  if (!categorizedData[cat]) {
-    categorizedData[cat] = [];
-  }
-  categorizedData[cat].push(glyph);
-});
-
-// Group by block for easier browsing
-const blockData = {};
-glyphData.forEach((glyph) => {
-  const block = glyph.block;
-  if (!blockData[block]) {
-    blockData[block] = [];
-  }
-  blockData[block].push(glyph);
-});
-
-// Create output directory
-const outputDir = "src";
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
+  return {
+    glyphData,
+    processedCount,
+    filteredCount,
+  };
 }
 
-// Generate summary stats
-const stats = {
-  totalCharacters: filteredCount,
-  categories: Object.keys(categorizedData).length,
-  blocks: Object.keys(blockData).length,
-  generatedAt: new Date().toISOString(),
-  unicodeVersion: ucdPackageJson.version,
-  glyphPartyVersion: packageJson.version,
-};
+function groupGlyphs(glyphData) {
+  const categorizedData = {};
+  glyphData.forEach((glyph) => {
+    const cat = glyph.category;
+    if (!categorizedData[cat]) {
+      categorizedData[cat] = [];
+    }
+    categorizedData[cat].push(glyph);
+  });
 
-// Write main data file
-const mainDataFile = path.join(outputDir, "unicode-data.json");
-fs.writeFileSync(
-  mainDataFile,
-  JSON.stringify(
-    {
+  const blockData = {};
+  glyphData.forEach((glyph) => {
+    const block = glyph.block;
+    if (!blockData[block]) {
+      blockData[block] = [];
+    }
+    blockData[block].push(glyph);
+  });
+
+  return { categorizedData, blockData };
+}
+
+function createStats({
+  filteredCount,
+  categorizedData,
+  blockData,
+  packageJson,
+  ucdPackageJson,
+}) {
+  return {
+    totalCharacters: filteredCount,
+    categories: Object.keys(categorizedData).length,
+    blocks: Object.keys(blockData).length,
+    generatedAt: new Date().toISOString(),
+    unicodeVersion: ucdPackageJson.version,
+    glyphPartyVersion: packageJson.version,
+  };
+}
+
+function ensureOutputDir(outputDir) {
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+}
+
+function writeDataFiles(outputDir, stats, glyphData, categorizedData, blockData) {
+  ensureOutputDir(outputDir);
+
+  const mainDataFile = path.join(outputDir, "unicode-data.json");
+  fs.writeFileSync(
+    mainDataFile,
+    JSON.stringify(
+      {
+        stats,
+        characters: glyphData,
+        byCategory: categorizedData,
+        byBlock: blockData,
+      },
+      null,
+      2,
+    ),
+  );
+
+  const compactDataFile = path.join(outputDir, "unicode-data.min.json");
+  fs.writeFileSync(
+    compactDataFile,
+    JSON.stringify({
       stats,
       characters: glyphData,
-      byCategory: categorizedData,
-      byBlock: blockData,
-    },
-    null,
-    2,
-  ),
-);
+    }),
+  );
 
-// Write compact version for production
-const compactDataFile = path.join(outputDir, "unicode-data.min.json");
-fs.writeFileSync(
-  compactDataFile,
-  JSON.stringify({
-    stats,
-    characters: glyphData,
-  }),
-);
-
-console.log("\n✨ Glyph Party data generation complete!");
-console.log(`📊 Statistics:`);
-console.log(`   Total characters: ${filteredCount.toLocaleString()}`);
-console.log(`   Categories: ${Object.keys(categorizedData).length}`);
-console.log(`   Blocks: ${Object.keys(blockData).length}`);
-console.log(
-  `   Processed: ${processedCount.toLocaleString()} total characters`,
-);
-console.log(`   Glyph Party: v${packageJson.version}`);
-console.log(`   Unicode: ${ucdPackageJson.version}`);
-
-console.log(`\n📁 Generated files:`);
-console.log(
-  `   ${mainDataFile} (${Math.round(fs.statSync(mainDataFile).size / 1024)}KB)`,
-);
-console.log(
-  `   ${compactDataFile} (${Math.round(fs.statSync(compactDataFile).size / 1024)}KB)`,
-);
-
-console.log(`\n🎉 Ready to build your gorgeous Glyph Party interface!`);
-
-// Show some sample characters
-console.log(`\n✨ Sample characters:`);
-const samples = glyphData.slice(0, 10);
-samples.forEach((glyph) => {
-  console.log(`   ${glyph.char} (U+${glyph.code}) - ${glyph.name}`);
-});
-
-if (glyphData.length > 10) {
-  console.log(`   ... and ${(glyphData.length - 10).toLocaleString()} more!`);
+  return { mainDataFile, compactDataFile };
 }
+
+function printSummary({
+  filteredCount,
+  categorizedData,
+  blockData,
+  processedCount,
+  packageJson,
+  ucdPackageJson,
+  mainDataFile,
+  compactDataFile,
+  glyphData,
+}) {
+  console.log("\n✨ Glyph Party data generation complete!");
+  console.log(`📊 Statistics:`);
+  console.log(`   Total characters: ${filteredCount.toLocaleString()}`);
+  console.log(`   Categories: ${Object.keys(categorizedData).length}`);
+  console.log(`   Blocks: ${Object.keys(blockData).length}`);
+  console.log(
+    `   Processed: ${processedCount.toLocaleString()} total characters`,
+  );
+  console.log(`   Glyph Party: v${packageJson.version}`);
+  console.log(`   Unicode: ${ucdPackageJson.version}`);
+
+  console.log(`\n📁 Generated files:`);
+  console.log(
+    `   ${mainDataFile} (${Math.round(fs.statSync(mainDataFile).size / 1024)}KB)`,
+  );
+  console.log(
+    `   ${compactDataFile} (${Math.round(fs.statSync(compactDataFile).size / 1024)}KB)`,
+  );
+
+  console.log(`\n🎉 Ready to build your gorgeous Glyph Party interface!`);
+  console.log(`\n✨ Sample characters:`);
+
+  const samples = glyphData.slice(0, 10);
+  samples.forEach((glyph) => {
+    console.log(`   ${glyph.char} (U+${glyph.code}) - ${glyph.name}`);
+  });
+
+  if (glyphData.length > 10) {
+    console.log(`   ... and ${(glyphData.length - 10).toLocaleString()} more!`);
+  }
+}
+
+function main() {
+  console.log("🎉 Building Unicode data for Glyph Party...\n");
+
+  const { packageJson, descriptions, unicodeData, blocks, ucdPackageJson } =
+    loadInputs();
+
+  console.log("📋 Processing Unicode blocks...");
+  const blockMap = createBlockMap(blocks);
+
+  console.log("🔍 Processing Unicode characters...");
+  const { glyphData, processedCount, filteredCount } = selectGlyphs(
+    unicodeData,
+    blockMap,
+    descriptions,
+  );
+
+  const { categorizedData, blockData } = groupGlyphs(glyphData);
+  const stats = createStats({
+    filteredCount,
+    categorizedData,
+    blockData,
+    packageJson,
+    ucdPackageJson,
+  });
+  const { mainDataFile, compactDataFile } = writeDataFiles(
+    "src",
+    stats,
+    glyphData,
+    categorizedData,
+    blockData,
+  );
+
+  printSummary({
+    filteredCount,
+    categorizedData,
+    blockData,
+    processedCount,
+    packageJson,
+    ucdPackageJson,
+    mainDataFile,
+    compactDataFile,
+    glyphData,
+  });
+}
+
+main();

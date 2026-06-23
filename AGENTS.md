@@ -1,37 +1,17 @@
-# AGENTS.md
+# Glyph Party
 
 Glyph Party is a static web application for searching Unicode characters, targeting terminal/CLI developers who want visual flair without NerdFonts.
 
-## Tech Stack
-
-- **Frontend:** Vanilla HTML, CSS, JavaScript (no framework, no bundler)
-- **Build:** Node.js with `ucd-full` package for Unicode data extraction
-- **Dev server:** Python 3 `http.server`
-- **Theme:** Catppuccin Mocha colour palette
-- **Task runner:** just
-
-## Project Structure
-
-```
-glyph-party/
-├── src/                    # Deployable static assets
-│   ├── index.html
-│   ├── style.css
-│   ├── script.js
-│   └── unicode-data.min.json  # Generated - do not edit
-├── build-unicode-data.js   # Extracts glyphs from UCD
-├── justfile
-└── package.json
-```
-
-## Setup Commands
+## Setup
 
 ```bash
-just setup      # Install deps + build Unicode data
-just check      # Verify setup is correct
+just setup      # Install dependencies and build Unicode data
+just check      # Verify local setup
 ```
 
-## Build Commands
+Use the runtime requirements from `package.json` and the `justfile`.
+
+## Build and Test
 
 ```bash
 just build      # Generate Unicode data from ucd-full
@@ -47,60 +27,40 @@ just serve      # Start server only
 just stats      # Show character/category statistics
 ```
 
+Run `just check` before committing. Run `just build` when changing the data pipeline. Test UI changes in a browser with `just dev`.
+
 ## Code Style
 
-### JavaScript
-
-- ES6+ class-based architecture (see `GlyphParty` class)
-- No transpilation - vanilla JS only
+- Use vanilla HTML, CSS, and JavaScript. Do not add a frontend framework, bundler, transpiler, or runtime dependency.
+- Keep browser code as ES modules, with `src/script.js` as the only HTML entry point.
+- Put feature code in focused modules under `src/`.
 - Use `async/await` for data loading
-- Debounce user input handlers
-
-### CSS
-
-- Catppuccin Mocha variables in `:root` (e.g. `--base`, `--text`, `--mauve`)
+- Debounce user input handlers.
+- Keep `src/index.html` as semantic single-page application markup.
 - Use CSS custom properties for all colours
-- No CSS preprocessors
-
-### HTML
-
-- Single-page application in `src/index.html`
-- Semantic HTML5 elements
+- Keep Catppuccin Mocha colour variables in `:root`.
+- Do not add a CSS preprocessor.
 
 ## Architecture Notes
 
-### Data Pipeline
-
-1. `build-unicode-data.js` reads from `ucd-full` package
-2. Filters characters by category (Sm, So, Ps, Pe, Pd, Po, Sc, Sk) and priority blocks
-3. Outputs `src/unicode-data.min.json` (compact) and `src/unicode-data.json` (readable)
-
-### Character Selection
-
-The build script includes characters from:
-- Mathematical/currency/modifier symbols
-- Punctuation categories
-- Priority blocks: Arrows, Box Drawing, Geometric Shapes, Dingbats, etc.
-
-Characters are filtered to exclude control characters, private use areas, and non-printable glyphs.
+- `build-unicode-data.js` reads from `ucd-full`, filters characters, groups them, writes JSON, and reports stats.
+- Keep the build script as named CommonJS pipeline functions for loading, filtering, grouping, writing, and reporting data.
+- Keep command-line behaviour in `main()`.
+- Generated data files are `src/unicode-data.min.json` and `src/unicode-data.json`. Do not edit `src/*.json` by hand.
+- Character selection includes mathematical, currency, modifier, punctuation, and priority symbol blocks.
+- Keep filters that exclude control characters, private-use areas, and non-printable glyphs.
 
 ## Deployment
 
-Target platform: Cloudflare Pages
+- Cloudflare Pages build command: `npm run build`
+- Cloudflare Pages output directory: `src`
+- Keep the app static. Do not add server-side code.
+- `.github/workflows/deploy-pages.yml` is the shared deploy workflow
+- Keep `preview.yml` and `production.yml` as thin callers of `deploy-pages.yml`.
+- `preview.yml` deploys same-repository pull requests and comments with the preview URL.
+- `production.yml` deploys stable SemVer tags from `main`
+- Required repository secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
 
-- Build command: `npm run build`
-- Output directory: `src`
-- No server-side code
+## Security and Secrets
 
-## Constraints
-
-- Node.js 16+ required
-- Python 3 required for dev server
-- Generated JSON files (`src/*.json`) should not be manually edited
-- No external runtime dependencies - all assets are static
-
-## PR Guidelines
-
-- Run `just check` before committing
-- Ensure `just build` succeeds if modifying the data pipeline
-- Test in browser with `just dev`
+- Never commit Cloudflare credentials or generated secret material.

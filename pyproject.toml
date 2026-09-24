@@ -1,7 +1,7 @@
 [project]
 name = "glyph-party"
 version = "0.1.3"
-description = "A drop-dead gorgeous Unicode character search tool for developers who want to add visual flair to their CLI applications, because your terminal deserves better than boring ASCII. Built with love, powered by cups of tea, and themed with Catppuccin colours 🎨 that'll make your eyes happy."
+description = "A drop-dead gorgeous Unicode character search tool for developers who want to add visual flair to their CLI applications, because your terminal deserves better than boring ASCII. Built with love, powered by cups of tea, and themed with Digicreon µCSS Violet colours 🎨 that'll make your eyes happy."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

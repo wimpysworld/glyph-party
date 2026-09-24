@@ -15,7 +15,8 @@ export function initThemeToggle() {
     .addEventListener("change", (event) => {
       let hasSavedTheme = false;
       try {
-        hasSavedTheme = !!localStorage.getItem(STORAGE_KEY);
+        const savedTheme = localStorage.getItem(STORAGE_KEY);
+        hasSavedTheme = savedTheme === "light" || savedTheme === "dark";
       } catch {
         hasSavedTheme = false;
       }
@@ -25,8 +26,17 @@ export function initThemeToggle() {
     });
 }
 
+function getCurrentTheme() {
+  const theme = document.documentElement.getAttribute("data-theme");
+  if (theme === "light" || theme === "dark") return theme;
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
 function toggleTheme(themeToggle) {
-  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const currentTheme = getCurrentTheme();
   const newTheme = currentTheme === "dark" ? "light" : "dark";
   setTheme(newTheme, themeToggle, true);
 }
@@ -44,33 +54,51 @@ function setTheme(theme, themeToggle, save = true) {
 }
 
 function updateThemeButton(themeToggle) {
-  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const currentTheme = getCurrentTheme();
   const isDark = currentTheme === "dark";
 
-  themeToggle.setAttribute(
-    "aria-label",
-    isDark ? "Switch to light mode" : "Switch to dark mode",
-  );
+  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
+  themeToggle.setAttribute("aria-label", label);
+  themeToggle.title = label;
 
-  themeToggle.innerHTML = isDark ? getSunIcon() : getMoonIcon();
+  themeToggle.replaceChildren(createThemeIcon(isDark));
 }
 
-function getSunIcon() {
-  return `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>`;
-}
+function createThemeIcon(isDark) {
+  const namespace = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(namespace, "svg");
+  for (const [name, value] of Object.entries({
+    "aria-hidden": "true", width: "20", height: "20",
+    viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+    "stroke-width": "2",
+  })) {
+    svg.setAttribute(name, value);
+  }
 
-function getMoonIcon() {
-  return `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-    </svg>`;
+  if (isDark) {
+    const circle = document.createElementNS(namespace, "circle");
+    for (const [name, value] of Object.entries({ cx: "12", cy: "12", r: "5" })) {
+      circle.setAttribute(name, value);
+    }
+    svg.appendChild(circle);
+    for (const [x1, y1, x2, y2] of [
+      ["12", "1", "12", "3"], ["12", "21", "12", "23"],
+      ["4.22", "4.22", "5.64", "5.64"],
+      ["18.36", "18.36", "19.78", "19.78"],
+      ["1", "12", "3", "12"], ["21", "12", "23", "12"],
+      ["4.22", "19.78", "5.64", "18.36"],
+      ["18.36", "5.64", "19.78", "4.22"],
+    ]) {
+      const line = document.createElementNS(namespace, "line");
+      for (const [name, value] of Object.entries({ x1, y1, x2, y2 })) {
+        line.setAttribute(name, value);
+      }
+      svg.appendChild(line);
+    }
+  } else {
+    const path = document.createElementNS(namespace, "path");
+    path.setAttribute("d", "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z");
+    svg.appendChild(path);
+  }
+  return svg;
 }

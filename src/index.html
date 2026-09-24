@@ -4,247 +4,129 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Glyph Party - Unicode Character Search</title>
-    <meta
-      name="description"
-      content="A beautiful Unicode character search tool for terminal developers. Find the perfect glyphs for your CLI applications."
-    />
+    <meta name="description" content="Find and copy Unicode characters for your terminal apps. Search symbols, arrows, punctuation and more, without Nerd Fonts." />
     <script>
-      // Set the theme before CSS paints to prevent FOUC.
+      // Apply the saved mode before the first paint.
       (function () {
-        const STORAGE_KEY = "glyph-party-theme";
-
         let savedTheme = null;
         try {
-          savedTheme = localStorage.getItem(STORAGE_KEY);
+          savedTheme = localStorage.getItem("glyph-party-theme");
         } catch (error) {
           savedTheme = null;
         }
-        if (savedTheme) {
+        if (savedTheme === "light" || savedTheme === "dark") {
           document.documentElement.setAttribute("data-theme", savedTheme);
-        } else {
-          const prefersDark = window.matchMedia(
-            "(prefers-color-scheme: dark)",
-          ).matches;
-          document.documentElement.setAttribute(
-            "data-theme",
-            prefersDark ? "dark" : "light",
-          );
         }
       })();
     </script>
+    <link rel="stylesheet" href="assets/vendor/mucss-1.4.9/mu.violet.css" />
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   </head>
   <body>
-    <div class="container">
-      <!-- Header -->
+    <a class="skip-link" href="#main">Skip to characters</a>
+    <div class="app-shell">
       <header class="header">
         <div class="header-content">
           <div class="title-row">
-            <h1 class="title">
-              <span class="title-glyph">✨</span>
-              Glyph Party
+            <div class="brand">
+              <span class="title-glyph" aria-hidden="true">✳</span>
+              <h1 class="title">Glyph Party</h1>
               <span class="title-version" id="glyph-party-version"></span>
-            </h1>
-            <button
-              id="theme-toggle"
-              class="theme-toggle"
-              type="button"
-              aria-label="Switch to light mode"
-              aria-live="polite"
-              title="Toggle light/dark mode"
-            >
-              <!-- Icon injected by JS -->
-            </button>
+            </div>
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Change colour mode" title="Change colour mode"></button>
           </div>
-          <p class="subtitle">Beautiful Unicode Character Search</p>
+          <div class="intro">
+            <div>
+              <p class="eyebrow">UNICODE FOR YOUR TERMINAL</p>
+              <h2>Small characters.<br />Endless possibilities.</h2>
+              <p class="subtitle">Find your next arrow, symbol or finishing touch.<br class="desktop-break" /> Copy a character. Make it yours. No Nerd Fonts needed.</p>
+            </div>
+            <div class="glyph-preview" aria-hidden="true"><span>↗</span><span>✦</span><span>▥</span><span>⌘</span><span>∞</span><span>☷</span></div>
+          </div>
         </div>
-
-        <!-- Search -->
-        <div class="search-container">
+        <section class="search-container" aria-label="Find characters">
           <div class="search-box">
-            <input
-              type="text"
-              id="search-input"
-              placeholder="Search characters... (arrow, heart, math)"
-              autocomplete="off"
-              spellcheck="false"
-            />
-            <div class="search-icon">🔍</div>
+            <label for="search-input">Search characters</label>
+            <input type="search" id="search-input" placeholder="Try arrow, heart or U+2665" autocomplete="off" spellcheck="false" aria-describedby="search-hint" />
+            <p id="search-hint" class="search-hint">Search by name, symbol, description or Unicode code.</p>
           </div>
-
-          <!-- Filters -->
           <div class="filters">
             <div class="filter-group">
-              <label class="filter-label">Category:</label>
-              <select id="category-filter" class="filter-select">
-                <option value="">All Categories</option>
-              </select>
+              <label for="category-filter">Category</label>
+              <select id="category-filter" class="filter-select"><option value="">All Categories</option></select>
             </div>
-
             <div class="filter-group">
-              <label class="filter-label">Block:</label>
-              <select id="block-filter" class="filter-select">
-                <option value="">All Blocks</option>
-              </select>
+              <label for="block-filter">Unicode block</label>
+              <select id="block-filter" class="filter-select"><option value="">All Blocks</option></select>
             </div>
-
-            <button id="clear-filters" class="clear-btn">Clear</button>
+            <button id="clear-filters" class="clear-btn outline" type="button">Clear filters</button>
           </div>
-        </div>
+        </section>
       </header>
-
-      <!-- Stats -->
-      <div class="stats-bar">
-        <div class="stat">
-          <span class="stat-label">Total:</span>
-          <span id="total-count" class="stat-value">0</span>
+      <main id="main" class="main" tabindex="-1">
+        <div class="results-heading">
+          <h2>Explore characters</h2>
+          <p>Copy a glyph or open its details.</p>
         </div>
-        <div class="stat">
-          <span class="stat-label">Showing:</span>
-          <span id="visible-count" class="stat-value">0</span>
+        <div id="character-stats" class="stats-bar hidden" aria-label="Character counts">
+          <div class="stat"><span class="stat-label">Total</span><span id="total-count" class="stat-value">0</span></div>
+          <div class="stat" role="status" aria-live="polite" aria-atomic="true"><span class="stat-label">Showing</span><span id="visible-count" class="stat-value">0</span></div>
+          <div class="stat"><span class="stat-label">Categories</span><span id="category-count" class="stat-value">0</span></div>
         </div>
-        <div class="stat">
-          <span class="stat-label">Categories:</span>
-          <span id="category-count" class="stat-value">0</span>
-        </div>
-      </div>
-
-      <!-- Results -->
-      <main class="main">
-        <div id="loading" class="loading">
-          <div class="loading-spinner"></div>
+        <div id="loading" class="loading" role="status">
+          <div class="loading-spinner" aria-hidden="true"></div>
           <p>Loading Unicode data...</p>
         </div>
-
         <div id="no-results" class="no-results hidden">
-          <div class="no-results-icon">🔍</div>
+          <div class="no-results-icon" aria-hidden="true">⌕</div>
           <h3>No characters found</h3>
-          <p>Try adjusting your search or filters</p>
+          <p>Try another search, or clear the filters.</p>
         </div>
-
-        <div id="character-grid" class="character-grid hidden">
-          <!-- Characters will be inserted here by JavaScript -->
-        </div>
+        <div id="character-grid" class="character-grid hidden"></div>
+        <noscript><p>Enable JavaScript to search and copy Unicode characters.</p></noscript>
       </main>
-
-      <!-- Toast notifications -->
       <div id="toast-container" class="toast-container"></div>
     </div>
-
-    <!-- Character detail modal -->
-    <div id="character-modal" class="modal hidden">
-      <div class="modal-overlay"></div>
+    <dialog id="character-modal" class="modal" aria-labelledby="modal-name">
       <div class="modal-content">
-        <button class="modal-close" id="modal-close">&times;</button>
+        <button class="modal-close outline" id="modal-close" type="button" aria-label="Close character details" autofocus>&times;</button>
         <div class="character-detail">
-          <div class="character-large" id="modal-char">♥</div>
+          <div class="character-large" id="modal-char" aria-hidden="true">♥</div>
           <div class="character-info">
+            <p class="eyebrow">CHARACTER DETAILS</p>
             <h2 id="modal-name">BLACK HEART SUIT</h2>
-            <div class="character-meta">
-              <div class="meta-item">
-                <span class="meta-label">Unicode:</span>
-                <span class="meta-value" id="modal-code">U+2665</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">Category:</span>
-                <span class="meta-value" id="modal-category"
-                  >Other Symbols</span
-                >
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">Block:</span>
-                <span class="meta-value" id="modal-block"
-                  >Miscellaneous Symbols</span
-                >
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">Decimal:</span>
-                <span class="meta-value" id="modal-decimal">9829</span>
-              </div>
-              <div class="meta-item hidden" id="modal-description-row">
-                <span class="meta-label">Description:</span>
-                <span class="meta-value" id="modal-description"></span>
-              </div>
-            </div>
+            <dl class="character-meta">
+              <div class="meta-item"><dt class="meta-label">Unicode</dt><dd class="meta-value" id="modal-code">U+2665</dd></div>
+              <div class="meta-item"><dt class="meta-label">Category</dt><dd class="meta-value" id="modal-category">Other Symbols</dd></div>
+              <div class="meta-item"><dt class="meta-label">Block</dt><dd class="meta-value" id="modal-block">Miscellaneous Symbols</dd></div>
+              <div class="meta-item"><dt class="meta-label">Decimal</dt><dd class="meta-value" id="modal-decimal">9829</dd></div>
+              <div class="meta-item hidden" id="modal-description-row"><dt class="meta-label">Description</dt><dd class="meta-value" id="modal-description"></dd></div>
+            </dl>
             <div class="character-actions">
-              <button class="action-btn primary" id="copy-char">
-                📋 Copy Character
-              </button>
-              <button class="action-btn" id="copy-code">🔢 Copy Unicode</button>
-              <button class="action-btn" id="copy-html">
-                &lt;/&gt; Copy HTML
-              </button>
+              <button class="action-btn primary" id="copy-char" type="button">Copy character</button>
+              <button class="action-btn outline" id="copy-code" type="button">Copy Unicode</button>
+              <button class="action-btn outline" id="copy-html" type="button">Copy HTML</button>
             </div>
           </div>
         </div>
       </div>
-    </div>
-
+    </dialog>
     <footer class="footer">
       <div class="footer-content">
-        <p class="footer-text">
-          Built with ❤️ for terminal app developers 🧑‍💻 seeking the perfect
-          glyphs •
-          <span id="unicode-version">Unicode 16.0</span>
-        </p>
+        <p class="footer-text">Made for terminal app developers <span aria-hidden="true">·</span> <span id="unicode-version">Unicode</span></p>
         <div class="footer-links">
-          <a
-            href="https://wimpysworld.social/@martin"
-            target="_blank"
-            rel="noopener"
-            aria-label="Mastodon"
-          >
-            <i class="fab fa-mastodon"></i>
-          </a>
-          <a
-            href="https://bsky.app/profile/wimpys.world"
-            target="_blank"
-            rel="noopener"
-            aria-label="Bluesky"
-          >
-            <i class="fab fa-bluesky"></i>
-          </a>
-          <a
-            href="https://github.com/wimpysworld/glyph-party"
-            target="_blank"
-            rel="noopener"
-            aria-label="GitHub"
-          >
-            <i class="fab fa-github"></i>
-          </a>
-          <a
-            href="https://wimpysworld.com"
-            target="_blank"
-            rel="noopener"
-            aria-label="Website"
-          >
-            <i class="fas fa-globe"></i>
-          </a>
-          <a
-            href="https://linuxmatters.sh"
-            target="_blank"
-            rel="noopener"
-            aria-label="Linux Matters Podcast"
-          >
-            <i class="fas fa-podcast"></i>
-          </a>
+          <a href="https://wimpysworld.social/@martin" target="_blank" rel="noopener" aria-label="Mastodon"><i class="fab fa-mastodon" aria-hidden="true"></i></a>
+          <a href="https://bsky.app/profile/wimpys.world" target="_blank" rel="noopener" aria-label="Bluesky"><i class="fab fa-bluesky" aria-hidden="true"></i></a>
+          <a href="https://github.com/wimpysworld/glyph-party" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          <a href="https://wimpysworld.com" target="_blank" rel="noopener" aria-label="Website"><i class="fas fa-globe" aria-hidden="true"></i></a>
+          <a href="https://linuxmatters.sh" target="_blank" rel="noopener" aria-label="Linux Matters Podcast"><i class="fas fa-podcast" aria-hidden="true"></i></a>
         </div>
       </div>
     </footer>
-
     <script type="module" src="script.js"></script>
   </body>
 </html>

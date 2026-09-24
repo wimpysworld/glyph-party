@@ -7,7 +7,8 @@ export function renderCharacters(characters, callbacks) {
   if (characters.length === 0) {
     grid.classList.add("hidden");
     noResults.classList.remove("hidden");
-    return;
+    grid.replaceChildren();
+    return 0;
   }
 
   noResults.classList.add("hidden");
@@ -23,24 +24,28 @@ export function renderCharacters(characters, callbacks) {
   }
 
   grid.replaceChildren(...nodes);
+  return charactersToRender.length;
 }
 
 function createCharacterCard(char, callbacks) {
   const card = document.createElement("div");
   card.className = "character-card";
-  card.setAttribute("role", "button");
-  card.setAttribute("tabindex", "0");
-  card.setAttribute("aria-label", `Copy ${char.name}`);
 
-  const character = document.createElement("div");
+  const copyButton = document.createElement("button");
+  copyButton.className = "character-copy-btn";
+  copyButton.type = "button";
+  copyButton.setAttribute("aria-label", `Copy ${char.name}`);
+  copyButton.title = `Copy ${char.name}`;
+
+  const character = document.createElement("span");
   character.className = "character-char";
   character.textContent = char.char;
 
-  const code = document.createElement("div");
+  const code = document.createElement("span");
   code.className = "character-code";
   code.textContent = `U+${char.code}`;
 
-  const name = document.createElement("div");
+  const name = document.createElement("span");
   name.className = "character-name";
   name.textContent = char.name;
 
@@ -48,34 +53,23 @@ function createCharacterCard(char, callbacks) {
   infoButton.className = "character-info-btn";
   infoButton.type = "button";
   infoButton.setAttribute("aria-label", `Show details for ${char.name}`);
+  infoButton.setAttribute("aria-haspopup", "dialog");
+  infoButton.title = `Show details for ${char.name}`;
 
   const infoIcon = document.createElement("i");
   infoIcon.className = "fas fa-info-circle";
+  infoIcon.setAttribute("aria-hidden", "true");
   infoButton.appendChild(infoIcon);
 
-  card.append(character, code, name, infoButton);
+  copyButton.append(character, code, name);
+  card.append(copyButton, infoButton);
 
-  card.addEventListener("click", (event) => {
-    if (!event.target.closest(".character-info-btn")) {
-      event.preventDefault();
-      callbacks.onCopy(char, card);
-    }
+  copyButton.addEventListener("click", () => {
+    callbacks.onCopy(char, card);
   });
 
-  card.addEventListener("keydown", (event) => {
-    if (event.target !== card) {
-      return;
-    }
-
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      callbacks.onCopy(char, card);
-    }
-  });
-
-  infoButton.addEventListener("click", (event) => {
-    event.stopPropagation();
-    callbacks.onShowDetail(char);
+  infoButton.addEventListener("click", () => {
+    callbacks.onShowDetail(char, infoButton);
   });
 
   return card;
@@ -92,24 +86,14 @@ function createLoadMore(totalCharacters) {
 
   const loadMoreHint = document.createElement("p");
   loadMoreHint.textContent = "Use search or filters to narrow results";
-  loadMoreHint.style.cssText =
-    "font-size: 0.875rem; color: var(--subtext0); margin-top: 0.5rem;";
+  loadMoreHint.className = "load-more-hint";
 
   loadMore.append(loadMoreCount, loadMoreHint);
-  loadMore.style.cssText = `
-                grid-column: 1 / -1;
-                text-align: center;
-                padding: 2rem;
-                background: var(--surface0);
-                border: 1px solid var(--surface1);
-                border-radius: 0.75rem;
-                color: var(--subtext1);
-            `;
 
   return loadMore;
 }
 
-export function showCharacterDetail(char) {
+export function showCharacterDetail(char, trigger = document.activeElement) {
   document.getElementById("modal-char").textContent = char.char;
   document.getElementById("modal-name").textContent = char.name;
   document.getElementById("modal-code").textContent = `U+${char.code}`;
@@ -127,11 +111,27 @@ export function showCharacterDetail(char) {
     descRow.classList.add("hidden");
   }
 
-  document.getElementById("character-modal").classList.remove("hidden");
+  const modal = document.getElementById("character-modal");
+  if (modal.open) return;
+
+  const previousOverflow = document.body.style.overflow;
+  const toastContainer = document.getElementById("toast-container");
+  const toastParent = toastContainer.parentElement;
+
+  modal.showModal();
+  modal.appendChild(toastContainer);
   document.body.style.overflow = "hidden";
+
+  modal.addEventListener("close", () => {
+    document.body.style.overflow = previousOverflow;
+    toastParent.appendChild(toastContainer);
+    const focusTarget = trigger?.isConnected
+      ? trigger
+      : document.getElementById("search-input");
+    focusTarget?.focus();
+  }, { once: true });
 }
 
 export function hideModal() {
-  document.getElementById("character-modal").classList.add("hidden");
-  document.body.style.overflow = "";
+  document.getElementById("character-modal").close();
 }

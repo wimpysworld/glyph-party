@@ -31,14 +31,16 @@ Run `just check` before committing. Run `just build` when changing the data pipe
 
 ## Code Style
 
-- Use vanilla HTML, CSS, and JavaScript. Do not add a frontend framework, bundler, transpiler, or runtime dependency.
+- Use vanilla HTML and JavaScript with Digicreon µCSS. Do not add a JavaScript framework, bundler, transpiler, or runtime dependency.
+- Do not add µJS.
 - Keep browser code as ES modules, with `src/script.js` as the only HTML entry point.
 - Put feature code in focused modules under `src/`.
 - Use `async/await` for data loading
 - Debounce user input handlers.
 - Keep `src/index.html` as semantic single-page application markup.
-- Use CSS custom properties for all colours
-- Keep Catppuccin Mocha colour variables in `:root`.
+- Use CSS custom properties for all project colours.
+- Use the pinned Digicreon µCSS Violet stylesheet, followed by the project stylesheet.
+- Keep project custom properties and overrides in the project stylesheet.
 - Do not add a CSS preprocessor.
 
 ## Architecture Notes

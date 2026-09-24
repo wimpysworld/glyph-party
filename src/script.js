@@ -11,7 +11,6 @@ import {
 } from "./render.js";
 import { filterCharacters } from "./search.js";
 import { initThemeToggle } from "./theme.js";
-import { showToast } from "./toast.js";
 
 class GlyphParty {
   constructor() {
@@ -21,23 +20,33 @@ class GlyphParty {
     this.currentCategory = "";
     this.currentBlock = "";
     this.currentModalChar = null;
+    this.dataLoaded = false;
+    this.renderedCount = 0;
 
     this.init();
   }
 
   async init() {
     this.bindEvents();
-    await this.loadData();
+    initThemeToggle();
+    if (!(await this.loadData())) return;
+
+    this.dataLoaded = true;
     this.setupFilters();
     this.filterCharacters();
     this.hideLoading();
-    initThemeToggle();
   }
 
   async loadData() {
     try {
       const response = await fetch("unicode-data.min.json");
+      if (!response.ok) {
+        throw new Error(`Unicode data request failed (${response.status})`);
+      }
       const data = await response.json();
+      if (!Array.isArray(data.characters)) {
+        throw new Error("Unicode data does not contain a character list");
+      }
 
       this.characters = data.characters;
       this.stats = data.stats;
@@ -47,9 +56,11 @@ class GlyphParty {
       console.log(
         `✨ Loaded ${this.characters.length.toLocaleString()} characters`,
       );
+      return true;
     } catch (error) {
       console.error("Failed to load Unicode data:", error);
-      this.showError("Failed to load Unicode data. Please refresh the page.");
+      this.showError("Failed to load Unicode data. Please reload the page.");
+      return false;
     }
   }
 
@@ -83,13 +94,21 @@ class GlyphParty {
       hideModal();
     });
 
-    document
-      .getElementById("character-modal")
-      .addEventListener("click", (event) => {
-        if (event.target.classList.contains("modal-overlay")) {
-          hideModal();
-        }
-      });
+    const modal = document.getElementById("character-modal");
+    modal.addEventListener("click", (event) => {
+      if (event.target !== modal) return;
+
+      const bounds = modal.getBoundingClientRect();
+      if (
+        event.clientX < bounds.left || event.clientX > bounds.right ||
+        event.clientY < bounds.top || event.clientY > bounds.bottom
+      ) {
+        hideModal();
+      }
+    });
+    modal.addEventListener("close", () => {
+      this.currentModalChar = null;
+    });
 
     document.getElementById("copy-char").addEventListener("click", () => {
       copyToClipboard(this.currentModalChar.char, "Character copied!");
@@ -110,10 +129,10 @@ class GlyphParty {
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        hideModal();
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key === "k") {
+      if (
+        !modal.open &&
+        (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k"
+      ) {
         event.preventDefault();
         document.getElementById("search-input").focus();
       }
@@ -153,6 +172,8 @@ class GlyphParty {
   }
 
   filterCharacters() {
+    if (!this.dataLoaded) return;
+
     this.filteredCharacters = filterCharacters(this.characters, {
       search: this.currentSearch,
       category: this.currentCategory,
@@ -164,11 +185,11 @@ class GlyphParty {
   }
 
   renderCharacters() {
-    renderCharacters(this.filteredCharacters, {
+    this.renderedCount = renderCharacters(this.filteredCharacters, {
       onCopy: copyCharacter,
-      onShowDetail: (char) => {
+      onShowDetail: (char, trigger) => {
         this.currentModalChar = char;
-        showCharacterDetail(char);
+        showCharacterDetail(char, trigger);
       },
     });
   }
@@ -187,6 +208,7 @@ class GlyphParty {
 
   updateStats() {
     if (this.stats) {
+      document.getElementById("character-stats").classList.remove("hidden");
       document.getElementById("total-count").textContent =
         this.stats.totalCharacters.toLocaleString();
       document.getElementById("category-count").textContent =
@@ -204,8 +226,12 @@ class GlyphParty {
   }
 
   updateVisibleCount() {
+    const shown = this.renderedCount.toLocaleString();
+    const matched = this.filteredCharacters.length.toLocaleString();
     document.getElementById("visible-count").textContent =
-      this.filteredCharacters.length.toLocaleString();
+      this.renderedCount < this.filteredCharacters.length
+        ? `${shown} of ${matched}`
+        : shown;
   }
 
   hideLoading() {
@@ -213,41 +239,34 @@ class GlyphParty {
   }
 
   showError(message) {
-    showToast(message, "error");
     const loading = document.getElementById("loading");
+    loading.removeAttribute("role");
     const errorPanel = document.createElement("div");
-    errorPanel.style.cssText =
-      "text-align: center; padding: 4rem 0; color: var(--red);";
+    errorPanel.className = "error-panel";
+    errorPanel.setAttribute("role", "alert");
 
     const icon = document.createElement("div");
-    icon.style.cssText = "font-size: 3rem; margin-bottom: 1rem;";
+    icon.className = "error-icon";
+    icon.setAttribute("aria-hidden", "true");
     icon.textContent = "⚠️";
 
     const heading = document.createElement("h3");
-    heading.textContent = "Error Loading Data";
+    heading.textContent = "Could not load characters";
 
     const body = document.createElement("p");
     body.textContent = message;
 
     const reloadButton = document.createElement("button");
     reloadButton.type = "button";
-    reloadButton.textContent = "Reload Page";
-    reloadButton.style.cssText = `
-      margin-top: 1rem;
-      padding: 0.75rem 1.5rem;
-      background: var(--red);
-      color: var(--crust);
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      font-size: 0.875rem;
-    `;
+    reloadButton.textContent = "Reload page";
+    reloadButton.className = "btn error-reload";
     reloadButton.addEventListener("click", () => {
       location.reload();
     });
 
     errorPanel.append(icon, heading, body, reloadButton);
     loading.replaceChildren(errorPanel);
+    loading.scrollIntoView?.({ block: "center" });
   }
 
   debounce(func, wait) {

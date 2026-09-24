@@ -6,11 +6,14 @@ export async function copyToClipboard(text, successMessage = "Copied!") {
     showToast(successMessage);
     return true;
   } catch (error) {
+    const previousFocus = document.activeElement;
     const textArea = document.createElement("textarea");
     textArea.value = text;
+    textArea.setAttribute("aria-label", "Text to copy");
     textArea.style.position = "fixed";
     textArea.style.opacity = "0";
-    document.body.appendChild(textArea);
+    const copyParent = document.querySelector("dialog[open]") || document.body;
+    copyParent.appendChild(textArea);
     textArea.select();
 
     try {
@@ -25,7 +28,10 @@ export async function copyToClipboard(text, successMessage = "Copied!") {
       showToast("Copy failed. Please select and copy manually.", "error");
       return false;
     } finally {
-      document.body.removeChild(textArea);
+      textArea.remove();
+      if (previousFocus?.isConnected) {
+        previousFocus.focus();
+      }
     }
   }
 }

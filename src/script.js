@@ -4,6 +4,7 @@
  */
 
 import { copyCharacter, copyToClipboard } from "./clipboard.js";
+import { initHero } from "./hero.js";
 import { initPreviewFont } from "./preview-font.js";
 import {
   hideModal,
@@ -28,6 +29,7 @@ class GlyphParty {
   }
 
   async init() {
+    this.hero = initHero();
     this.bindEvents();
     initThemeToggle();
     initPreviewFont();
@@ -72,6 +74,7 @@ class GlyphParty {
       "input",
       this.debounce((event) => {
         this.currentSearch = event.target.value;
+        if (this.currentSearch.trim()) this.hero.collapseOnIntent();
         this.filterCharacters();
       }, 300),
     );
@@ -80,11 +83,13 @@ class GlyphParty {
       .getElementById("category-filter")
       .addEventListener("change", (event) => {
         this.currentCategory = event.target.value;
+        if (this.currentCategory) this.hero.collapseOnIntent();
         this.filterCharacters();
       });
 
     document.getElementById("block-filter").addEventListener("change", (event) => {
       this.currentBlock = event.target.value;
+      if (this.currentBlock) this.hero.collapseOnIntent();
       this.filterCharacters();
     });
 

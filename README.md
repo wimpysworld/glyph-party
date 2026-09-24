@@ -2,7 +2,7 @@
 
 > *Beautiful Unicode Character Search*
 
-A drop-dead gorgeous [Unicode character search](https://glyph-party.wimpys.world/) tool for developers who want to add visual flair to their CLI applications, because your terminal deserves better than boring ASCII. Built with love, powered by cups of tea, and themed with [Catppuccin](https://catppuccin.com) colours 🎨 that'll make your eyes happy.
+A drop-dead gorgeous [Unicode character search](https://glyph-party.wimpys.world/) tool for developers who want to add visual flair to their CLI applications, because your terminal deserves better than boring ASCII. Built with love, powered by cups of tea, and themed with Digicreon µCSS Violet colours 🎨 that'll make your eyes happy.
 
 **🌐 [Try it live at glyph-party.wimpys.world](https://glyph-party.wimpys.world/)**
 
@@ -18,7 +18,7 @@ Tired of hunting through nightmarish Unicode search websites that look like they
 - **AI-generated descriptions** for each glyph to help make the search easier
 - **Instant search** that actually works (shocking, I know)
 - **Click to copy** any character (because life's too short for manual selection)
-- **Catppuccin Mocha theme** that won't burn your retinas
+- **Digicreon µCSS Violet theme** with light and dark modes that won't burn your retinas
 - **Categories & blocks** for when you know roughly what you want
 - **Click for details** including Unicode codes and HTML entities
 - **Responsive design** that works on your phone too

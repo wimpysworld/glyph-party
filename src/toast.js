@@ -2,18 +2,13 @@ export function showToast(message, type = "success") {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
   toast.className = `toast ${type}`;
-  toast.setAttribute("role", "alert");
+  toast.setAttribute("role", type === "error" ? "alert" : "status");
+  toast.setAttribute("aria-atomic", "true");
   toast.textContent = message;
 
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateX(100%)";
-    setTimeout(() => {
-      if (container.contains(toast)) {
-        container.removeChild(toast);
-      }
-    }, 300);
+    toast.remove();
   }, 3000);
 }

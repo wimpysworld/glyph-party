@@ -6,7 +6,7 @@ export function filterCharacters(characters, filters) {
     .trim()
     .split(/\s+/)
     .filter(Boolean)
-    .map((term) => term.toLowerCase());
+    .map((term) => /^u\+[0-9a-f]+$/i.test(term) ? term.slice(2).toLowerCase() : term.toLowerCase());
 
   return characters.filter((char) => {
     if (searchTerms.length > 0) {

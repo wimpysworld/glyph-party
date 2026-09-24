@@ -48,13 +48,27 @@ body { min-width: 0; }
 .intro-toggle { min-height: 2.75rem; margin: 0; padding: 0.5rem 0.75rem; background: var(--gp-surface); border-color: var(--gp-border); color: var(--gp-text); font-size: 0.8125rem; line-height: 1.5; }
 .intro-toggle:hover { background: var(--gp-soft); border-color: var(--gp-accent); color: var(--gp-accent); }
 .intro-toggle:focus-visible { outline: 2px solid var(--gp-accent); outline-offset: 3px; }
-:root.intro-collapsed #hero-intro { display: none; }
-:root.intro-collapsed .header-content { padding-bottom: 1.25rem; }
-.intro { display: flex; justify-content: space-between; align-items: center; gap: 2rem; padding-block: 3.25rem 2.5rem; }
+.header-content { padding-bottom: 1.25rem; }
+/* Clip a padding-free grid child so that the whole introduction can collapse. */
+.hero-shell { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 240ms cubic-bezier(.22, 1, .36, 1); }
+.hero-clip { min-height: 0; overflow: hidden; }
+:root.intro-collapsed .hero-shell { grid-template-rows: 0fr; }
+.intro { display: flex; justify-content: space-between; align-items: center; gap: 2rem; padding-block: 3.25rem 1.25rem; opacity: 1; transition: opacity 140ms ease-out; }
+:root.intro-collapsed .intro { opacity: 0; }
+@supports not (grid-template-rows: 0fr) {
+  :root.intro-collapsed .hero-shell { display: none; }
+  .intro { transition: none; }
+}
 .eyebrow { margin: 0 0 0.75rem; color: var(--gp-accent); font: 500 0.6875rem var(--mu-font-family-monospace); letter-spacing: 0.13em; }
 .intro h2 { margin: 0 0 1rem; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.1; letter-spacing: -0.055em; }
 .subtitle { margin: 0; color: var(--gp-muted); font-size: 1rem; line-height: 1.75; }
 .glyph-preview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.625rem; padding-right: 2rem; transform: rotate(-5deg); }
+@media (min-width: 540px) and (prefers-reduced-motion: no-preference) {
+  @supports (grid-template-rows: 0fr) {
+    .glyph-preview { transform: translateY(0) rotate(-5deg); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
+    :root.intro-collapsed .glyph-preview { transform: translateY(4px) rotate(-5deg); }
+  }
+}
 .glyph-preview span { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; background: var(--gp-tint); border: 1px solid var(--gp-border); border-radius: 0.875rem; color: var(--gp-accent); font: 2.5rem var(--gp-glyph-font); }
 .glyph-preview span:nth-child(2), .glyph-preview span:nth-child(4) { background: var(--mu-primary-background); color: var(--mu-primary-inverse); border-color: var(--mu-primary-border); }
 .search-container { margin: 0; padding: 1.5rem; background: var(--gp-tint); border: 1px solid var(--gp-border); border-radius: 1rem; }
@@ -145,7 +159,8 @@ dialog.modal::backdrop { background: var(--mu-modal-overlay-background-color); b
   .title-row { grid-template-columns: minmax(0, 1fr) auto; }
   .intro-toggle { grid-column: 1; grid-row: 2; justify-self: start; }
   .theme-toggle { grid-column: 2; grid-row: 1; align-self: start; }
-  .intro { padding-block: 2.5rem 2rem; }
+  .hero-shell { transition-duration: 220ms; }
+  .intro { padding-block: 2.5rem 0.75rem; }
   .glyph-preview { gap: 0.5rem; padding-right: 0.5rem; }
   .glyph-preview span { width: 3rem; height: 3rem; font-size: 1.75rem; }
   .search-container { padding: 1rem; }
@@ -165,7 +180,7 @@ dialog.modal::backdrop { background: var(--mu-modal-overlay-background-color); b
   .title-version { font-size: 0.625rem; }
   .desktop-break { display: none; }
   .subtitle { font-size: 0.9375rem; }
-  .intro { padding-block: 1.75rem 1.5rem; }
+  .intro { padding-block: 1.75rem 0.25rem; }
   .clear-btn { justify-self: stretch; }
   .search-hint { line-height: 1.6; }
   .filter-select { font-size: 0.8125rem; }

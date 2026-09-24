@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,6 +8,7 @@
     <script>
       // Apply the saved mode before the first paint.
       (function () {
+        document.documentElement.classList.remove("no-js");
         let savedTheme = null;
         try {
           savedTheme = localStorage.getItem("glyph-party-theme");

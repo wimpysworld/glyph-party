@@ -4,6 +4,7 @@
  */
 
 import { copyCharacter, copyToClipboard } from "./clipboard.js";
+import { initPreviewFont } from "./preview-font.js";
 import {
   hideModal,
   renderCharacters,
@@ -29,6 +30,7 @@ class GlyphParty {
   async init() {
     this.bindEvents();
     initThemeToggle();
+    initPreviewFont();
     if (!(await this.loadData())) return;
 
     this.dataLoaded = true;

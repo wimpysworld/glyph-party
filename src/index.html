@@ -72,6 +72,19 @@
           <h2>Explore characters</h2>
           <p>Copy a glyph or open its details.</p>
         </div>
+        <div class="preview-controls">
+          <div class="preview-field">
+            <label for="preview-font">Glyph preview font</label>
+            <select id="preview-font" class="filter-select" aria-describedby="preview-status preview-hint">
+              <option value="local" selected>Local browser fonts</option>
+              <option value="reference">Noto reference font</option>
+            </select>
+          </div>
+          <div class="preview-notes">
+            <p id="preview-status" role="status" aria-live="polite">Local browser fonts are active.</p>
+            <p id="preview-hint">Reference mode adds Noto Sans Symbols 2 for some characters. Copying does not include a font. Your terminal can look different.</p>
+          </div>
+        </div>
         <div id="character-stats" class="stats-bar hidden" aria-label="Character counts">
           <div class="stat"><span class="stat-label">Total</span><span id="total-count" class="stat-value">0</span></div>
           <div class="stat" role="status" aria-live="polite" aria-atomic="true"><span class="stat-label">Showing</span><span id="visible-count" class="stat-value">0</span></div>
@@ -106,6 +119,8 @@
               <div class="meta-item"><dt class="meta-label">Decimal</dt><dd class="meta-value" id="modal-decimal">9829</dd></div>
               <div class="meta-item hidden" id="modal-description-row"><dt class="meta-label">Description</dt><dd class="meta-value" id="modal-description"></dd></div>
             </dl>
+            <p id="modal-preview-mode" class="preview-note">Preview: local browser fonts.</p>
+            <p class="preview-note">Copied text does not include a font. Your terminal can look different.</p>
             <div class="character-actions">
               <button class="action-btn primary" id="copy-char" type="button">Copy character</button>
               <button class="action-btn outline" id="copy-code" type="button">Copy Unicode</button>

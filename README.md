@@ -17,11 +17,18 @@ Tired of hunting through nightmarish Unicode search websites that look like they
 - **10,000+ carefully curated glyphs** perfect for terminal UIs, no [NerdFonts](https://www.nerdfonts.com/) required
 - **AI-generated descriptions** for each glyph to help make the search easier
 - **Instant search** that actually works (shocking, I know)
+- **Optional Noto Sans Symbols 2 preview** lets you compare glyphs with a reference font. Local browser fonts are the default, and Noto loads only when you select it. Copying a character does not include a font, so your terminal can look different.
 - **Click to copy** any character (because life's too short for manual selection)
 - **Digicreon µCSS Violet theme** with light and dark modes that won't burn your retinas
 - **Categories & blocks** for when you know roughly what you want
 - **Click for details** including Unicode codes and HTML entities
 - **Responsive design** that works on your phone too
+
+### Optional reference font
+
+The optional preview loads [Noto Sans Symbols 2 v25](https://fonts.gstatic.com/s/notosanssymbols2/v25/I_uyMoGduATTei9eI8daxVHDyfisHr71ypY.woff2) from Google's content delivery network. The font uses the [SIL Open Font License 1.1](https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssymbols2/OFL.txt).
+
+Selecting Noto requires a network connection and contacts Google. Local browser fonts are the default, with no reference font request until you select Noto. If the font cannot load, the preview returns to local fonts. Glyph Party does not bundle the font.
 
 ## ⚡ Quick Start
 

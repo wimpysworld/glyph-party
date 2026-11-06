@@ -1,6 +1,10 @@
 # Glyph Party recipes
 # Beautiful Unicode Character Search
 
+# Keep project setup and release checks ahead of Tailor's operational recipes.
+set allow-duplicate-recipes
+import "just/loader.just"
+
 # List recipes
 list:
     @just --list
@@ -8,10 +12,6 @@ list:
 # Install dependencies
 install:
     npm install
-
-# Build Unicode data
-build:
-    npm run build:data
 
 # Generate missing descriptions with Gemini 3.8 Flash; pass --rebuild for all glyphs
 generate-descriptions *args:
@@ -21,7 +21,7 @@ generate-descriptions *args:
 
 # Test description generation without API requests
 test-descriptions:
-    uv run python -m unittest discover -s test -p 'test_*.py'
+    uv run --locked python -m unittest discover -s test -p 'test_*.py'
 
 # Show the current project version
 version:
@@ -68,6 +68,22 @@ version:
       process.exit(1);
     }
     console.log(`current: ${expected}`);
+
+# Check project versions before Tailor creates a local vX.Y.Z tag
+release $VERSION: version
+    #!/usr/bin/env bash
+    set -euo pipefail
+    version_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+    if [[ ! "${VERSION}" =~ ${version_pattern} ]]; then
+        echo "Use a stable SemVer version, for example 1.2.3." >&2
+        exit 1
+    fi
+    project_version=$(node -p 'require("./package.json").version')
+    if [[ "${VERSION}" != "${project_version}" ]]; then
+        echo "Release version ${VERSION} does not match project version ${project_version}." >&2
+        exit 1
+    fi
+    just --justfile just/tailor.just --working-directory . release "${VERSION}"
 
 # Update the project version
 version-bump $version:

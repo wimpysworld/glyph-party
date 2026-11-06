@@ -1,5 +1,5 @@
 {
-  description = "Nix flake";
+  description = "Glyph Party development environment";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -47,6 +47,9 @@
                 actionlint
                 gh
                 just
+                nodejs
+                python3
+                uv
               ]
               ++ (if tailorPkgs ? tailor then [ tailorPkgs.tailor ] else [ ])
               ++ import ./nix/loader.nix { inherit pkgs; };

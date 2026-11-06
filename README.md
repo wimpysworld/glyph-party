@@ -49,7 +49,8 @@ npm run build:data
 npm run dev
 ```
 
-**Requirements:** Node.js 16+, Python 3, and a sense of style.
+**Requirements:** Node.js 16+ for the data build, Python 3.12+ for the description tools, `uv`, and Just 1.23+.
+Run `nix develop` to use the locked nixpkgs defaults for Node.js and Python, plus `uv`, Just, and Actionlint.
 
 > [!TIP]
 > The browser code uses ES modules. Serve the site over HTTP, for example with `just dev`, instead of opening `src/index.html` from disk.
@@ -63,7 +64,9 @@ The first build requires HTTPS access to `www.unicode.org`. Later builds use `.c
 Failed downloads, checksum mismatches, and invalid data cause the build to fail. If a cached file fails verification, move that file out of the cache and rebuild.
 The build uses Node.js built-ins and does not require `ucd-full`. The generated app remains static and makes no Unicode source requests.
 
-Run `npm test` after a build to check the parser, source verification, and generated data. `just check` also runs these checks.
+Run `just test` after a build to check the parser, source verification, generated data, and description tools without API requests.
+Run `just lint` for workflow checks, JavaScript, Python and shell syntax checks, and project version consistency.
+`just lint correct` runs the same checks because the project has no source formatter. `just check` checks the setup and Unicode data.
 
 > [!NOTE]
 > To generate descriptions for glyphs using AI, you'll need a Google Gemini API key and `uv` installed. You can install `uv` with this command:
@@ -102,6 +105,8 @@ just setup                  # Complete setup for new projects
 just dev                    # Start development server + open browser
 just serve                  # Start development server only
 just build                  # Generate fresh Unicode data
+just test                   # Run Unicode and description tests
+just lint                   # Check workflows, syntax, and project versions
 just clean                  # Remove generated Unicode data files
 just rebuild                # Clean + build fresh data
 just generate-descriptions  # Generate AI descriptions for glyphs
@@ -110,6 +115,11 @@ just check                  # Verify everything's working
 just help                   # List every recipe
 ```
 
+The root `justfile` imports `just/loader.just`. Tailor owns the loader and core recipes.
+Project build, test, and lint steps are in `just/project/*.sh`. The root overrides only setup and release to retain project-specific behaviour.
+Python remains disabled in Tailor because the description tools use a virtual uv project, not an installable Python package.
+Tailor's GitHub Pages support remains disabled because the site uses Cloudflare Pages.
+
 ## 🚀 Deployment
 
 Designed for [Cloudflare Pages](https://pages.cloudflare.com) but works anywhere static sites are welcome.
@@ -117,8 +127,13 @@ Designed for [Cloudflare Pages](https://pages.cloudflare.com) but works anywhere
 GitHub Actions deploys the site with the reusable `.github/workflows/deploy-pages.yml` workflow:
 
 - Pull requests from this repository deploy a preview and add the preview URL as a PR comment.
-- Stable SemVer tags, such as `1.2.3`, deploy production from `main`.
+- Pull requests, including forks, run the secret-free `👁️ Sentinel` check. It builds Unicode data and runs both test suites.
+- Stable SemVer tags with a `v` prefix, such as `v1.2.3`, deploy production. Create release tags from `main`.
 - The workflows expect `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
+
+For a release, run `just version-bump 1.2.3`, review and commit the changes, then run `just release 1.2.3` from a clean checkout.
+The release command checks all project version files before Tailor creates the local `v1.2.3` tag. Push the tag to publish it.
+Existing tags without a `v` prefix remain unchanged and no longer trigger production deployments.
 
 For a manual Cloudflare Pages setup, use:
 

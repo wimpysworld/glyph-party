@@ -1,0 +1,40 @@
+name: Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: "👁️ Sentinel"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Unicode data
+        run: bash just/project/build.sh
+
+      - name: Test Unicode data and descriptions
+        run: bash just/project/test.sh

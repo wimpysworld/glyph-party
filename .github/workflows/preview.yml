@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Comment on PR
         run: |
+          # The backticks are literal Markdown, not shell substitutions.
+          # shellcheck disable=SC2016
           body=$(printf '## Preview Deployment\n\n| Status | URL |\n|--------|-----|\n| Deployed | %s |\n\n**Branch:** `%s`\n**Commit:** `%s`' "${DEPLOYMENT_URL}" "${PREVIEW_BRANCH}" "${PREVIEW_COMMIT}")
           gh pr comment "${{ github.event.pull_request.number }}" \
             --repo "${{ github.repository }}" \

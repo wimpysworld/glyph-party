@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import stat
 import tempfile
 from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from textwrap import dedent
@@ -207,8 +208,15 @@ def generate_parallel(
 
 
 def save_sorted_descriptions(descriptions: dict, descriptions_path: str) -> None:
-    """Sort descriptions by codepoint and save to file."""
+    """Save sorted descriptions, preserving the existing file's permission mode.
+
+    New files use the temporary file's mode, 0600 restricted by the process umask.
+    """
     sorted_descriptions = dict(sorted(descriptions.items()))
+    try:
+        destination_mode = stat.S_IMODE(os.stat(descriptions_path).st_mode)
+    except FileNotFoundError:
+        destination_mode = None
 
     temporary_path = None
     try:
@@ -220,6 +228,8 @@ def save_sorted_descriptions(descriptions: dict, descriptions_path: str) -> None
             temporary_path = f.name
             json.dump(sorted_descriptions, f, ensure_ascii=False, indent=2)
             f.flush()
+            if destination_mode is not None:
+                os.fchmod(f.fileno(), destination_mode)
             os.fsync(f.fileno())
         os.replace(temporary_path, descriptions_path)
     finally:

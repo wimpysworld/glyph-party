@@ -1,4 +1,6 @@
 import json
+import os
+import stat
 import tempfile
 import unittest
 from pathlib import Path
@@ -98,6 +100,28 @@ class DescriptionTests(unittest.TestCase):
                     generator.save_sorted_descriptions({"20C2": "New."}, str(path))
             self.assertEqual(path.read_bytes(), original)
             self.assertEqual(list(Path(directory).iterdir()), [path])
+
+    def test_atomic_save_preserves_permissions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "descriptions.json"
+            for mode in [0o644, 0o640, 0o600]:
+                with self.subTest(mode=oct(mode)):
+                    path.write_text("{}")
+                    path.chmod(mode)
+                    generator.save_sorted_descriptions({"20C2": "New."}, str(path))
+                    self.assertEqual(stat.S_IMODE(path.stat().st_mode), mode)
+                    self.assertEqual(json.loads(path.read_text()), {"20C2": "New."})
+
+    def test_atomic_save_new_file_respects_umask(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "descriptions.json"
+            previous_umask = os.umask(0o277)
+            try:
+                generator.save_sorted_descriptions({"20C2": "New."}, str(path))
+            finally:
+                os.umask(previous_umask)
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o400)
+            self.assertEqual(json.loads(path.read_text()), {"20C2": "New."})
 
     def test_complete_data_needs_no_key_or_client(self):
         with patch.object(generator, "load_unicode_data", return_value=[glyph("20C2")]), \

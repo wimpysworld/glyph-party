@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const { createHash } = require("crypto");
+const { createHash, randomBytes } = require("crypto");
 const sources = require("./ucd-sources.json");
 
 const CATEGORIES = new Set(
@@ -138,7 +138,13 @@ async function loadSource(file, source, cacheDir) {
   const data = await downloadSource(source.url);
   verifySource(data, source, file);
   await fs.promises.mkdir(cacheDir, { recursive: true });
-  await fs.promises.writeFile(cachePath, data);
+  const temporaryPath = `${cachePath}.${randomBytes(12).toString("hex")}.tmp`;
+  try {
+    await fs.promises.writeFile(temporaryPath, data, { flag: "wx" });
+    await fs.promises.rename(temporaryPath, cachePath);
+  } finally {
+    await fs.promises.rm(temporaryPath, { force: true });
+  }
   return data.toString("utf8");
 }
 

@@ -58,6 +58,8 @@ async function testSourceCache() {
   const body = Buffer.from("verified source\n");
   const source = { url: "https://example.invalid/UnicodeData.txt", sha256: createHash("sha256").update(body).digest("hex") };
   const originalGet = https.get;
+  const originalWriteFile = fs.promises.writeFile;
+  const originalRename = fs.promises.rename;
   let calls = 0;
   let status = 200;
   let error;
@@ -95,6 +97,31 @@ async function testSourceCache() {
     fs.writeFileSync(path.join(cacheDir, "UnicodeData.txt"), "corrupt");
     await assert.rejects(loadSource("UnicodeData.txt", source, cacheDir), /SHA-256 mismatch/);
     assert.equal(calls, 1, "A corrupt cache must fail without a silent replacement");
+
+    fs.promises.writeFile = async (file, data, options) => {
+      assert.equal(path.dirname(file), cacheDir);
+      assert.notEqual(file, path.join(cacheDir, "interrupted.txt"));
+      await originalWriteFile(file, data.subarray(0, 3), options);
+      throw new Error("Cache write interrupted");
+    };
+    await assert.rejects(loadSource("interrupted.txt", source, cacheDir), /Cache write interrupted/);
+    assert.deepEqual(fs.readdirSync(cacheDir), ["UnicodeData.txt"]);
+    fs.promises.writeFile = originalWriteFile;
+    assert.equal(await loadSource("interrupted.txt", source, cacheDir), body.toString());
+    assert.deepEqual(fs.readFileSync(path.join(cacheDir, "interrupted.txt")), body);
+
+    fs.promises.rename = async (temporaryPath, cachePath) => {
+      assert.equal(path.dirname(temporaryPath), path.dirname(cachePath));
+      assert.deepEqual(fs.readFileSync(temporaryPath), body);
+      assert.equal(fs.existsSync(cachePath), false);
+      throw new Error("Cache rename failed");
+    };
+    await assert.rejects(loadSource("rename.txt", source, cacheDir), /Cache rename failed/);
+    assert.deepEqual(fs.readdirSync(cacheDir).sort(), ["UnicodeData.txt", "interrupted.txt"]);
+    fs.promises.rename = originalRename;
+    assert.equal(await loadSource("rename.txt", source, cacheDir), body.toString());
+    assert.deepEqual(fs.readFileSync(path.join(cacheDir, "rename.txt")), body);
+
     downloaded = Buffer.from("wrong download");
     await assert.rejects(loadSource("mismatch.txt", source, cacheDir), /SHA-256 mismatch/);
     assert.equal(fs.existsSync(path.join(cacheDir, "mismatch.txt")), false);
@@ -110,6 +137,8 @@ async function testSourceCache() {
     await assert.rejects(loadSource("timeout.txt", source, cacheDir), /Download timed out/);
   } finally {
     https.get = originalGet;
+    fs.promises.writeFile = originalWriteFile;
+    fs.promises.rename = originalRename;
     fs.rmSync(cacheDir, { recursive: true, force: true });
   }
 }

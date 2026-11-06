@@ -4,9 +4,11 @@ import argparse
 import json
 import os
 import stat
+import sys
 import tempfile
 from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from textwrap import dedent
+from traceback import walk_tb
 
 import httpx
 from dotenv import load_dotenv
@@ -283,10 +285,22 @@ def main(argv=None):
     return 0
 
 
-if __name__ == "__main__":
+def cli(argv=None):
+    """Run the command without exposing exception messages or response content."""
     try:
-        raise SystemExit(main())
+        return main(argv)
     except Exception as error:
         status = f" (HTTP {error.code})" if isinstance(error, errors.APIError) else ""
-        print(f"Generation failed: {type(error).__name__}{status}. Completed batches remain saved.")
-        raise SystemExit(1) from None
+        print(f"Generation failed: {type(error).__name__}{status}.", file=sys.stderr)
+        if not isinstance(error, (errors.APIError, httpx.TransportError, TimeoutError, ConnectionError)):
+            print("Traceback locations (messages, source and locals omitted):", file=sys.stderr)
+            for frame, lineno in walk_tb(error.__traceback__):
+                print(
+                    f"  {os.path.basename(frame.f_code.co_filename)}:{lineno} "
+                    f"in {frame.f_code.co_name}", file=sys.stderr,
+                )
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(cli())

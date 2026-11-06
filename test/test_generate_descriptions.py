@@ -1,9 +1,11 @@
+import io
 import json
 import os
 import stat
 import tempfile
 import unittest
 from concurrent.futures import Future
+from contextlib import redirect_stderr
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -22,6 +24,45 @@ def response(items):
 
 
 class DescriptionTests(unittest.TestCase):
+    def test_cli_local_failure_has_safe_traceback_locations(self):
+        secret = "test-only-private-request-content"
+
+        def fail(argv):
+            raise RuntimeError(secret)
+
+        output = io.StringIO()
+        with patch.object(generator, "main", side_effect=fail), redirect_stderr(output):
+            self.assertEqual(generator.cli([]), 1)
+        message = output.getvalue()
+        self.assertIn("Generation failed: RuntimeError.", message)
+        self.assertRegex(message, r"test_generate_descriptions\.py:\d+ in fail")
+        self.assertNotIn(secret, message)
+        self.assertNotIn("raise RuntimeError", message)
+        self.assertNotIn("saved", message)
+
+    def test_cli_remote_failures_remain_redacted(self):
+        secret = "test-only-private-request-content"
+        for error, expected in [
+            (generator.errors.ClientError(403, {"error": {"message": secret}}), "ClientError (HTTP 403)"),
+            (generator.httpx.ConnectError(secret), "ConnectError"),
+        ]:
+            with self.subTest(error=type(error).__name__):
+                output = io.StringIO()
+                with patch.object(generator, "main", side_effect=error), redirect_stderr(output):
+                    self.assertEqual(generator.cli([]), 1)
+                self.assertEqual(output.getvalue(), f"Generation failed: {expected}.\n")
+
+    def test_cli_startup_failure_does_not_claim_saved_batches(self):
+        output = io.StringIO()
+        with patch.object(generator, "load_dotenv"), \
+             patch.object(generator, "load_unicode_data", side_effect=FileNotFoundError("private-path")), \
+             patch.object(generator, "generate_parallel") as generate, redirect_stderr(output):
+            self.assertEqual(generator.cli([]), 1)
+        generate.assert_not_called()
+        self.assertIn("Generation failed: FileNotFoundError.", output.getvalue())
+        self.assertNotIn("private-path", output.getvalue())
+        self.assertNotIn("saved", output.getvalue())
+
     def test_exact_batch_validation(self):
         client = MagicMock()
         valid = {"codepoint": "20C2", "description": "Rufiyaa sign."}

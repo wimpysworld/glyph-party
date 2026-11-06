@@ -45,7 +45,7 @@ Run `just check` before committing. Run `just build` when changing the data pipe
 
 ## Architecture Notes
 
-- Use official, version-pinned `UnicodeData.txt` and `Blocks.txt` sources in `build-unicode-data.js`.
+- Pin official `UnicodeData.txt` and `Blocks.txt` sources in `ucd-sources.json`. Load them through `ucd-data.js` for `build-unicode-data.js`.
 - Verify source checksums against the source manifest before use, including cached files in `.cache/ucd/<version>`.
 - Keep the build script as named CommonJS pipeline functions for loading, filtering, grouping, writing, and reporting data.
 - Keep command-line behaviour in `main()`.

@@ -4,6 +4,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .cache/ucd/
+.direnv/
 
 # Generated Unicode data files (these are large and can be regenerated)
 src/unicode-data.json

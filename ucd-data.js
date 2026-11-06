@@ -162,7 +162,7 @@ async function loadUcdData() {
     };
   } catch (error) {
     throw new Error(
-      `Cannot load Unicode ${sources.version}: ${error.message}. Check network access and the cache at ${cacheDir}.`,
+      `Cannot load Unicode ${sources.version}: ${error.message}`,
     );
   }
 }

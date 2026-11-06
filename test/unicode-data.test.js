@@ -118,6 +118,7 @@ function testGeneratedData() {
   const read = (file) => JSON.parse(fs.readFileSync(path.join(__dirname, "..", file), "utf8"));
   const full = read("src/unicode-data.json");
   const compact = read("src/unicode-data.min.json");
+  const descriptions = read("descriptions.json");
   assert.deepEqual(compact, { stats: full.stats, characters: full.characters });
   assert.equal(full.stats.unicodeVersion, sources.version);
   assert.equal(full.stats.glyphPartyVersion, read("package.json").version);
@@ -135,6 +136,9 @@ function testGeneratedData() {
     assert.equal(glyph.char, String.fromCodePoint(glyph.decimal));
     assert.notEqual(glyph.block, "Unknown");
     assert.ok(!glyph.name.startsWith("<"));
+    assert.equal(typeof glyph.description, "string");
+    assert.ok(glyph.description.trim(), `Missing description: ${glyph.code}`);
+    assert.equal(glyph.description, descriptions[glyph.code]);
   }
 
   const { categorizedData, blockData } = groupGlyphs(full.characters);
@@ -145,11 +149,10 @@ function testGeneratedData() {
   const glyphs = new Map(full.characters.map((glyph) => [glyph.code, glyph]));
   for (const [code, name] of Object.entries({ "20C2": "RUFIYAA SIGN", "20C3": "UAE DIRHAM SIGN", "20C4": "OMANI RIAL SIGN", "1DB00": "LEIBNIZIAN EQUALS SIGN" })) {
     assert.equal(glyphs.get(code)?.name, name);
-    assert.equal(glyphs.get(code).description, "");
   }
   assert.equal(full.byBlock["Musical Symbols Supplement"].length, 42);
   assert.equal(full.byBlock["Miscellaneous Symbols and Arrows Extended"].length, 29);
-  assert.equal(full.characters.filter((glyph) => glyph.description).length, 10616);
+  assert.deepEqual(Object.keys(descriptions).sort(), [...glyphs.keys()].sort());
 }
 
 async function main() {

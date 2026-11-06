@@ -15,7 +15,7 @@ Tired of hunting through nightmarish Unicode search websites that look like they
 ## 🚀 What You Get
 
 - **10,000+ carefully curated glyphs** perfect for terminal UIs, no [NerdFonts](https://www.nerdfonts.com/) required
-- **AI-generated descriptions** for 10,616 glyphs to help with search. The 252 remaining glyphs are searchable by name and code.
+- **AI-generated descriptions** for all 10,868 glyphs to help with search.
 - **Instant search** that actually works (shocking, I know)
 - **Optional Noto Sans Symbols 2 preview** lets you compare glyphs with a reference font. Local browser fonts are the default, and Noto loads only when you select it. Copying a character does not include a font, so your terminal can look different.
 - **Click to copy** any character (because life's too short for manual selection)
@@ -83,6 +83,15 @@ Run `npm test` after a build to check the parser, source verification, and gener
 > ```bash
 > just generate-descriptions
 > ```
+
+The generator uses Gemini 3.8 Flash with low thinking. It accepts `GEMINI_API_KEY` or the existing `GOOGLE_API_KEY` variable.
+By default, it generates only missing or blank descriptions. Each request contains up to 25 glyphs, with up to five requests in parallel.
+Each validated batch is saved atomically. If a request fails, run the same command again to fill the remaining gaps.
+Run `just build` after generation to include the descriptions in the app.
+
+Use `just generate-descriptions --rebuild` to regenerate all selected descriptions. This makes paid requests for every glyph and replaces existing descriptions.
+If a rebuild fails, completed batches remain saved. Repeating `--rebuild` regenerates every glyph again.
+Run `just test-descriptions` to check validation, failed saves, and resume behaviour without API requests.
 
 ## 🛠️ Just Commands
 

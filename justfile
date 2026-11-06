@@ -13,11 +13,15 @@ install:
 build:
     npm run build:data
 
-# Generate descriptions for glyphs using Gemini API
-generate-descriptions:
+# Generate missing descriptions with Gemini 3.8 Flash; pass --rebuild for all glyphs
+generate-descriptions *args:
     @echo "🤖 Generating glyph descriptions..."
     @if ! command -v uv >/dev/null 2>&1; then echo "❌ uv not found. Install it from: https://docs.astral.sh/uv/getting-started/installation/"; exit 1; fi
-    uv run generate_descriptions.py
+    uv run generate_descriptions.py {{args}}
+
+# Test description generation without API requests
+test-descriptions:
+    uv run python -m unittest discover -s test -p 'test_*.py'
 
 # Show the current project version
 version:

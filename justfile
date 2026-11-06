@@ -146,7 +146,7 @@ stats:
         fi
     done
 
-# Check if all required files exist
+# Check setup and validate Unicode data
 check:
     @echo "🔍 Checking Glyph Party setup..."
     @echo "================================"
@@ -163,6 +163,7 @@ check:
     @if command -v node >/dev/null 2>&1; then echo "✅ Node.js available ($(node --version))"; else echo "❌ Node.js not found"; fi
     @if command -v python3 >/dev/null 2>&1; then echo "✅ Python available ($(python3 --version 2>&1))"; else echo "❌ Python not found"; fi
     @if command -v uv >/dev/null 2>&1; then echo "✅ uv available ($(uv --version))"; else echo "⚠️  uv not found (needed for 'just generate-descriptions')"; fi
+    npm test
 
 # Quick development cycle - rebuild and serve
 quick: rebuild dev

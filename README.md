@@ -15,7 +15,7 @@ Tired of hunting through nightmarish Unicode search websites that look like they
 ## 🚀 What You Get
 
 - **10,000+ carefully curated glyphs** perfect for terminal UIs, no [NerdFonts](https://www.nerdfonts.com/) required
-- **AI-generated descriptions** for each glyph to help make the search easier
+- **AI-generated descriptions** for 10,616 glyphs to help with search. The 252 remaining glyphs are searchable by name and code.
 - **Instant search** that actually works (shocking, I know)
 - **Optional Noto Sans Symbols 2 preview** lets you compare glyphs with a reference font. Local browser fonts are the default, and Noto loads only when you select it. Copying a character does not include a font, so your terminal can look different.
 - **Click to copy** any character (because life's too short for manual selection)
@@ -53,6 +53,17 @@ npm run dev
 
 > [!TIP]
 > The browser code uses ES modules. Serve the site over HTTP, for example with `just dev`, instead of opening `src/index.html` from disk.
+
+### Unicode data sources
+
+The build downloads the official Unicode 18.0.0 `UnicodeData.txt` and `Blocks.txt` files. `ucd-sources.json` pins their URLs and SHA-256 checksums.
+The first build requires HTTPS access to `www.unicode.org`. Later builds use `.cache/ucd/18.0.0/` and verify both checksums on every build.
+`just clean` removes generated JSON files but retains this source cache. A build with a complete, verified cache needs no network connection.
+
+Failed downloads, checksum mismatches, and invalid data cause the build to fail. If a cached file fails verification, move that file out of the cache and rebuild.
+The build uses Node.js built-ins and does not require `ucd-full`. The generated app remains static and makes no Unicode source requests.
+
+Run `npm test` after a build to check the parser, source verification, and generated data. `just check` also runs these checks.
 
 > [!NOTE]
 > To generate descriptions for glyphs using AI, you'll need a Google Gemini API key and `uv` installed. You can install `uv` with this command:
@@ -114,9 +125,9 @@ For a manual Cloudflare Pages setup, use:
 
 ## 📊 Stats
 
-- **10,616** hand-picked characters
-- **22** categories of awesome
-- **199** Unicode blocks
+- **10,868** selected characters from Unicode 18.0.0
+- **22** categories
+- **203** Unicode blocks
 
 ## 🤝 Contributing
 

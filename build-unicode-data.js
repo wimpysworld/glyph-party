@@ -8,6 +8,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { loadUcdData } = require("./ucd-data");
 
 const CATEGORY_NAMES = {
   Lu: "Uppercase Letter",
@@ -86,7 +87,7 @@ function loadPackageJson() {
   try {
     return require("./package.json");
   } catch (error) {
-    return { version: "unknown", devDependencies: {} };
+    return { version: "unknown" };
   }
 }
 
@@ -101,30 +102,10 @@ function loadDescriptions() {
   return descriptions;
 }
 
-function loadUcdData(packageJson) {
-  try {
-    const unicodeData = require("ucd-full/UnicodeData.json");
-    const blocks = require("ucd-full/Blocks.json");
-    const ucdPackageJson = require("ucd-full/package.json");
-
-    console.log("✅ Loaded UCD data files");
-    console.log(`📦 Glyph Party version: ${packageJson.version}`);
-    console.log(`📊 UCD package version: ${ucdPackageJson.version}`);
-
-    return { unicodeData, blocks, ucdPackageJson };
-  } catch (error) {
-    const ucdVersion = packageJson.devDependencies["ucd-full"] || "^17.0.0";
-    console.error("❌ Error loading UCD data:");
-    console.error("Make sure you have installed ucd-full:");
-    console.error(`npm install --save-dev ucd-full@${ucdVersion}\n`);
-    process.exit(1);
-  }
-}
-
-function loadInputs() {
+async function loadInputs() {
   const packageJson = loadPackageJson();
   const descriptions = loadDescriptions();
-  const ucdData = loadUcdData(packageJson);
+  const ucdData = await loadUcdData();
 
   return {
     packageJson,
@@ -175,7 +156,7 @@ function isUsefulCharacter(char, name) {
 
   if (
     name &&
-    (name.includes("<control>") ||
+    (name.startsWith("<") ||
       name.includes("PRIVATE USE") ||
       name.includes("SURROGATE") ||
       name.includes("NONCHARACTER"))
@@ -251,14 +232,14 @@ function createStats({
   categorizedData,
   blockData,
   packageJson,
-  ucdPackageJson,
+  ucdSource,
 }) {
   return {
     totalCharacters: glyphData.length,
     categories: Object.keys(categorizedData).length,
     blocks: Object.keys(blockData).length,
     generatedAt: new Date().toISOString(),
-    unicodeVersion: ucdPackageJson.version,
+    unicodeVersion: ucdSource.version,
     glyphPartyVersion: packageJson.version,
   };
 }
@@ -298,7 +279,7 @@ function printSummary({
   blockData,
   unicodeData,
   packageJson,
-  ucdPackageJson,
+  ucdSource,
   mainDataFile,
   compactDataFile,
   glyphData,
@@ -312,7 +293,7 @@ function printSummary({
     `   Processed: ${unicodeData.UnicodeData.length.toLocaleString()} total characters`,
   );
   console.log(`   Glyph Party: v${packageJson.version}`);
-  console.log(`   Unicode: ${ucdPackageJson.version}`);
+  console.log(`   Unicode: ${ucdSource.version}`);
 
   console.log(`\n📁 Generated files:`);
   console.log(
@@ -335,11 +316,11 @@ function printSummary({
   }
 }
 
-function main() {
+async function main() {
   console.log("🎉 Building Unicode data for Glyph Party...\n");
 
-  const { packageJson, descriptions, unicodeData, blocks, ucdPackageJson } =
-    loadInputs();
+  const { packageJson, descriptions, unicodeData, blocks, ucdSource } =
+    await loadInputs();
 
   console.log("📋 Processing Unicode blocks...");
   const blockMap = createBlockMap(blocks);
@@ -357,7 +338,7 @@ function main() {
     categorizedData,
     blockData,
     packageJson,
-    ucdPackageJson,
+    ucdSource,
   });
   const { mainDataFile, compactDataFile } = writeDataFiles(
     "src",
@@ -372,11 +353,18 @@ function main() {
     blockData,
     unicodeData,
     packageJson,
-    ucdPackageJson,
+    ucdSource,
     mainDataFile,
     compactDataFile,
     glyphData,
   });
 }
 
-main();
+if (require.main === module) {
+  main().catch((error) => {
+    console.error("❌", error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { createBlockMap, selectGlyphs, groupGlyphs, createStats };

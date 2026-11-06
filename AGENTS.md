@@ -14,7 +14,7 @@ Use the runtime requirements from `package.json` and the `justfile`.
 ## Build and Test
 
 ```bash
-just build      # Generate Unicode data from ucd-full
+just build      # Generate Unicode data from pinned official sources
 just rebuild    # Clean + build fresh
 just clean      # Remove generated Unicode data files
 ```
@@ -45,7 +45,8 @@ Run `just check` before committing. Run `just build` when changing the data pipe
 
 ## Architecture Notes
 
-- `build-unicode-data.js` reads from `ucd-full`, filters characters, groups them, writes JSON, and reports stats.
+- Pin official `UnicodeData.txt` and `Blocks.txt` sources in `ucd-sources.json`. Load them through `ucd-data.js` for `build-unicode-data.js`.
+- Verify source checksums against the source manifest before use, including cached files in `.cache/ucd/<version>`.
 - Keep the build script as named CommonJS pipeline functions for loading, filtering, grouping, writing, and reporting data.
 - Keep command-line behaviour in `main()`.
 - Generated data files are `src/unicode-data.min.json` and `src/unicode-data.json`. Do not edit those files by hand.

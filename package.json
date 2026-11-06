@@ -4,6 +4,7 @@
   "description": "A beautiful Unicode character search tool for terminal developers",
   "main": "src/index.html",
   "scripts": {
+    "test": "node test/unicode-data.test.js",
     "build:data": "node build-unicode-data.js",
     "dev": "python3 -m http.server 8000 --directory src",
     "build": "npm run build:data && echo 'Ready for deployment to Cloudflare Pages!'",
@@ -20,9 +21,6 @@
   ],
   "author": "Martin Wimpress",
   "license": "MIT",
-  "devDependencies": {
-    "ucd-full": "^17.0.0"
-  },
   "engines": {
     "node": ">=16.0.0"
   },

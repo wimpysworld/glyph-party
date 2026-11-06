@@ -13,11 +13,15 @@ install:
 build:
     npm run build:data
 
-# Generate descriptions for glyphs using Gemini API
-generate-descriptions:
+# Generate missing descriptions with Gemini 3.8 Flash; pass --rebuild for all glyphs
+generate-descriptions *args:
     @echo "🤖 Generating glyph descriptions..."
     @if ! command -v uv >/dev/null 2>&1; then echo "❌ uv not found. Install it from: https://docs.astral.sh/uv/getting-started/installation/"; exit 1; fi
-    uv run generate_descriptions.py
+    uv run generate_descriptions.py {{args}}
+
+# Test description generation without API requests
+test-descriptions:
+    uv run python -m unittest discover -s test -p 'test_*.py'
 
 # Show the current project version
 version:
@@ -146,7 +150,7 @@ stats:
         fi
     done
 
-# Check if all required files exist
+# Check setup and validate Unicode data
 check:
     @echo "🔍 Checking Glyph Party setup..."
     @echo "================================"
@@ -163,6 +167,11 @@ check:
     @if command -v node >/dev/null 2>&1; then echo "✅ Node.js available ($(node --version))"; else echo "❌ Node.js not found"; fi
     @if command -v python3 >/dev/null 2>&1; then echo "✅ Python available ($(python3 --version 2>&1))"; else echo "❌ Python not found"; fi
     @if command -v uv >/dev/null 2>&1; then echo "✅ uv available ($(uv --version))"; else echo "⚠️  uv not found (needed for 'just generate-descriptions')"; fi
+    @if [ -f "src/unicode-data.json" ] || [ -f "src/unicode-data.min.json" ]; then \
+        npm test; \
+    else \
+        echo "⚠️  Unicode tests skipped because data is not built (run 'just build')"; \
+    fi
 
 # Quick development cycle - rebuild and serve
 quick: rebuild dev

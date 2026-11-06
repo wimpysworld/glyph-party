@@ -183,22 +183,28 @@ def generate_parallel(
 
     failure = None
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(process_batch, batch, client) for batch in batches]
-        for future in tqdm(
-            as_completed(futures), total=total_batches, desc="Generating descriptions",
-        ):
-            try:
-                result = future.result()
-            except CancelledError:
-                continue
-            except Exception as error:
-                failure = failure or error
-                for pending in futures:
-                    pending.cancel()
-                continue
-            updated = {**descriptions, **result["descriptions"]}
-            save_sorted_descriptions(updated, descriptions_path)
-            descriptions.update(result["descriptions"])
+        futures = []
+        try:
+            for batch in batches:
+                futures.append(executor.submit(process_batch, batch, client))
+            for future in tqdm(
+                as_completed(futures), total=total_batches, desc="Generating descriptions",
+            ):
+                try:
+                    result = future.result()
+                except CancelledError:
+                    continue
+                except Exception as error:
+                    failure = failure or error
+                    for pending in futures:
+                        pending.cancel()
+                    continue
+                updated = {**descriptions, **result["descriptions"]}
+                save_sorted_descriptions(updated, descriptions_path)
+                descriptions.update(result["descriptions"])
+        finally:
+            for pending in futures:
+                pending.cancel()
 
     if failure is not None:
         raise failure

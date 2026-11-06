@@ -3,6 +3,7 @@ import os
 import stat
 import tempfile
 import unittest
+from concurrent.futures import Future
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -89,6 +90,51 @@ class DescriptionTests(unittest.TestCase):
             self.assertEqual(process.call_count, 1)
             self.assertEqual(json.loads(path.read_text())["2190"], "Original description, unchanged.")
             self.assertEqual(len(json.loads(path.read_text())), 3)
+
+    def test_parallel_aborts_cancel_queued_batches_before_shutdown(self):
+        for error in [KeyboardInterrupt(), OSError("Disk error")]:
+            with self.subTest(error=type(error).__name__), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "descriptions.json"
+                descriptions = {"2190": "Original."}
+                path.write_text(json.dumps(descriptions))
+                completed = Future()
+                completed.set_result({"descriptions": {"20C2": "Rufiyaa sign."}})
+                unsaved = Future()
+                unsaved.set_result({"descriptions": {"20C3": "Dirham sign."}})
+                queued = Future()
+                futures = [completed, unsaved, queued]
+                save = generator.save_sorted_descriptions
+
+                def results():
+                    yield completed
+                    if isinstance(error, KeyboardInterrupt):
+                        raise error
+                    yield unsaved
+
+                def checkpoint(updated, destination):
+                    if "20C3" in updated:
+                        raise error
+                    save(updated, destination)
+
+                with patch.object(generator, "ThreadPoolExecutor") as pool, \
+                     patch.object(generator, "as_completed", return_value=results()), \
+                     patch.object(generator, "save_sorted_descriptions", side_effect=checkpoint):
+                    pool.return_value.__enter__.return_value.submit.side_effect = futures
+
+                    def shutdown(*args):
+                        self.assertTrue(queued.cancelled())
+                        return False
+
+                    pool.return_value.__exit__.side_effect = shutdown
+                    with self.assertRaises(type(error)) as raised:
+                        generator.generate_parallel(
+                            None, [glyph("20C2"), glyph("20C3"), glyph("20C4")],
+                            descriptions, batch_size=1, descriptions_path=str(path),
+                        )
+                    self.assertIs(raised.exception, error)
+                expected = {"2190": "Original.", "20C2": "Rufiyaa sign."}
+                self.assertEqual(json.loads(path.read_text()), expected)
+                self.assertEqual(descriptions, expected)
 
     def test_atomic_save_failure_preserves_file(self):
         with tempfile.TemporaryDirectory() as directory:

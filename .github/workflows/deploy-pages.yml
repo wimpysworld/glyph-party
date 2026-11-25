@@ -71,3 +71,26 @@ jobs:
       - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  release:
+    name: Create GitHub Release
+    needs: deploy
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "Release ${RELEASE_TAG} already exists."
+          else
+            gh release create "${RELEASE_TAG}" \
+              --title "${RELEASE_TAG}" \
+              --generate-notes
+          fi

@@ -127,7 +127,7 @@ Published to [GitHub Pages](https://pages.github.com/) at `glyph-party.wimpys.wo
 GitHub Actions deploys the site with `.github/workflows/deploy-pages.yml`:
 
 - Pull requests, including forks, run the secret-free `👁️ Sentinel` check. It builds Unicode data and runs both test suites.
-- Stable SemVer tags with a `v` prefix, such as `v1.2.3`, build `pages/unicode-data.min.json` with bare version `1.2.3` (`BUILD_VERSION`) and deploy `pages/` to GitHub Pages. Manual runs via `workflow_dispatch` are also supported.
+- Stable SemVer tags with a `v` prefix, such as `v1.2.3`, build `pages/unicode-data.min.json` with bare version `1.2.3` (`BUILD_VERSION`), deploy `pages/` to GitHub Pages, and create a published GitHub Release with generated notes. Manual runs via `workflow_dispatch` deploy Pages without creating a release.
 - Local builds etch the bare version from `git describe --tags --match 'v*.*.*' --always --dirty` (with the leading `v` stripped), falling back to `package.json`.
 
 For a release, run `just release 1.2.3` from a clean checkout on `main`.

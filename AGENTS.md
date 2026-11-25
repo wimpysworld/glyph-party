@@ -59,7 +59,7 @@ Run `just check` before committing. Run `just build` when changing the data pipe
 - Build command: `npm run build`
 - Static output directory: `pages`
 - Keep the app static. Do not add server-side code.
-- `.github/workflows/deploy-pages.yml` builds `pages/` and deploys to GitHub Pages on stable SemVer tags (`v*.*.*`) and `workflow_dispatch`.
+- `.github/workflows/deploy-pages.yml` builds `pages/`, deploys to GitHub Pages on stable SemVer tags (`v*.*.*`) and `workflow_dispatch`, and creates a GitHub Release after tag deploys succeed.
 - Keep `pages.enabled: false` in `.tailor.yml` so Tailor does not overwrite custom `pages/` app files or skip the Unicode data build.
 - Custom domain `glyph-party.wimpys.world` points to `wimpysworld.github.io` via Cloudflare DNS (DNS Only).
 

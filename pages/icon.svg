@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="glyph-party-title">
+  <title id="glyph-party-title">Glyph Party</title>
+  <defs>
+    <linearGradient id="gp-violet" x1="8" y1="8" x2="27" y2="27" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#9e70e8"/>
+      <stop offset="100%" stop-color="#804cd1"/>
+    </linearGradient>
+    <linearGradient id="gp-pink" x1="56" y1="8" x2="37" y2="27" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f7529b"/>
+      <stop offset="100%" stop-color="#db2e7c"/>
+    </linearGradient>
+    <linearGradient id="gp-gold" x1="56" y1="56" x2="37" y2="37" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffc045"/>
+      <stop offset="100%" stop-color="#ed931c"/>
+    </linearGradient>
+    <linearGradient id="gp-mint" x1="8" y1="56" x2="27" y2="37" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#29e0a2"/>
+      <stop offset="100%" stop-color="#10bd84"/>
+    </linearGradient>
+  </defs>
+  <rect x="23" y="23" width="18" height="18" rx="2" fill="#2b124d"/>
+  <g id="gp-outline" fill="none" stroke="#210e3b" stroke-width="8.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 22.2H14.8A7.4 7.4 0 1 1 22.2 14.8V32"/>
+    <path d="M41.8 32V14.8A7.4 7.4 0 1 1 49.2 22.2H32"/>
+    <path d="M32 41.8H49.2A7.4 7.4 0 1 1 41.8 49.2V32"/>
+    <path d="M22.2 32V49.2A7.4 7.4 0 1 1 14.8 41.8H32"/>
+  </g>
+  <g id="gp-ribbons" fill="none" stroke-width="6.2" stroke-linecap="butt" stroke-linejoin="round">
+    <path d="M32 22.2H14.8A7.4 7.4 0 1 1 22.2 14.8V32" stroke="url(#gp-violet)"/>
+    <path d="M41.8 32V14.8A7.4 7.4 0 1 1 49.2 22.2H32" stroke="url(#gp-pink)"/>
+    <path d="M32 41.8H49.2A7.4 7.4 0 1 1 41.8 49.2V32" stroke="url(#gp-gold)"/>
+    <path d="M22.2 32V49.2A7.4 7.4 0 1 1 14.8 41.8H32" stroke="url(#gp-mint)"/>
+  </g>
+  <g id="gp-weave" fill="none" stroke-linecap="butt">
+    <path d="M22.2 17.5V26.9" stroke="#210e3b" stroke-width="8.8"/>
+    <path d="M22.2 16.5V27.9" stroke="url(#gp-violet)" stroke-width="6.2"/>
+    <path d="M46.5 22.2H37.1" stroke="#210e3b" stroke-width="8.8"/>
+    <path d="M47.5 22.2H36.1" stroke="url(#gp-pink)" stroke-width="6.2"/>
+    <path d="M41.8 46.5V37.1" stroke="#210e3b" stroke-width="8.8"/>
+    <path d="M41.8 47.5V36.1" stroke="url(#gp-gold)" stroke-width="6.2"/>
+    <path d="M17.5 41.8H26.9" stroke="#210e3b" stroke-width="8.8"/>
+    <path d="M16.5 41.8H27.9" stroke="url(#gp-mint)" stroke-width="6.2"/>
+  </g>
+  <path d="M32 25.6 Q32.9 31.1 38.4 32 Q32.9 32.9 32 38.4 Q31.1 32.9 25.6 32 Q31.1 31.1 32 25.6 Z" fill="#ffffff"/>
+</svg>

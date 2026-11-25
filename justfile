@@ -69,34 +69,37 @@ version:
     }
     console.log(`current: ${expected}`);
 
-# Check project versions before Tailor creates a local vX.Y.Z tag
-release $VERSION: version
+# Bump manifest versions if needed, commit them, and create local tag vX.Y.Z
+release $VERSION:
     #!/usr/bin/env bash
     set -euo pipefail
     version_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
     if [[ ! "${VERSION}" =~ ${version_pattern} ]]; then
-        echo "Use a stable SemVer version, for example 1.2.3." >&2
+        echo "Error: Use a stable SemVer version, for example 1.2.3." >&2
         exit 1
     fi
-    project_version=$(node -p 'require("./package.json").version')
-    if [[ "${VERSION}" != "${project_version}" ]]; then
-        echo "Release version ${VERSION} does not match project version ${project_version}." >&2
-        exit 1
-    fi
-    just --justfile just/tailor.just --working-directory . release "${VERSION}"
 
-# Update the project version
-version-bump $version:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    version_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
-    if [[ ! "$version" =~ $version_pattern ]]; then
-        echo "Invalid version: $version" >&2
-        echo "Use a SemVer release version, for example 1.2.3." >&2
+    branch="$(git branch --show-current)"
+    if [[ "${branch}" != "main" ]]; then
+        echo "Error: Release must run on main (currently on ${branch})." >&2
         exit 1
     fi
-    npm version --no-git-tag-version "$version"
-    node - "$version" <<'NODE'
+
+    if [[ -n "$(git status --porcelain)" ]]; then
+        echo "Error: Working directory is not clean." >&2
+        exit 1
+    fi
+
+    if git show-ref --tags --verify --quiet "refs/tags/v${VERSION}"; then
+        echo "Error: Tag v${VERSION} already exists." >&2
+        exit 1
+    fi
+
+    bumped=false
+    current_version="$(just version 2>/dev/null | sed -n 's/^current: //p' || true)"
+    if [[ "${current_version}" != "${VERSION}" ]]; then
+        npm version --no-git-tag-version --allow-same-version "${VERSION}" >/dev/null
+        node - "${VERSION}" <<'NODE'
     const fs = require("fs");
     const nextVersion = process.argv[2];
     const pyprojectPath = "pyproject.toml";
@@ -110,8 +113,22 @@ version-bump $version:
       pyproject.replace(/^version = "([^"]+)"$/m, `version = "${nextVersion}"`),
     );
     NODE
-    uv lock
-    echo "Updated version to $version"
+        uv lock
+        just version
+        git add package.json package-lock.json pyproject.toml uv.lock
+        git commit -m "chore(release): bump version to ${VERSION}" -- package.json package-lock.json pyproject.toml uv.lock
+        bumped=true
+        echo "Bumped project manifests to ${VERSION}."
+    else
+        echo "Project manifests are already at ${VERSION}."
+    fi
+
+    just --justfile just/tailor.just --working-directory . release "${VERSION}"
+    if [[ "${bumped}" == "true" ]]; then
+        echo "Remember to push main before or with the tag:"
+        echo "  git push origin main && git push origin v${VERSION}"
+        echo ""
+    fi
 
 # Clean generated data files
 clean:

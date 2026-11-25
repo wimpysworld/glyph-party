@@ -130,8 +130,9 @@ GitHub Actions deploys the site with `.github/workflows/deploy-pages.yml`:
 - Stable SemVer tags with a `v` prefix, such as `v1.2.3`, build `pages/unicode-data.min.json` with bare version `1.2.3` (`BUILD_VERSION`) and deploy `pages/` to GitHub Pages. Manual runs via `workflow_dispatch` are also supported.
 - Local builds etch the bare version from `git describe --tags --match 'v*.*.*' --always --dirty` (with the leading `v` stripped), falling back to `package.json`.
 
-For a release, run `just version-bump 1.2.3`, review and commit the changes, then run `just release 1.2.3` from a clean checkout.
-The release command checks all project version files before Tailor creates the local `v1.2.3` tag. Push the tag to publish it.
+For a release, run `just release 1.2.3` from a clean checkout on `main`.
+It updates `package.json`, `package-lock.json`, `pyproject.toml`, and `uv.lock`, commits the version bump if needed, and creates the local `v1.2.3` tag via Tailor.
+Push `main` and the `v1.2.3` tag to publish the release.
 Existing tags without a `v` prefix remain unchanged and do not trigger production deployments.
 
 ## 🎯 Perfect For

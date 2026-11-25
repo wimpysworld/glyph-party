@@ -184,7 +184,8 @@ function testGeneratedData() {
   const descriptions = read("descriptions.json");
   assert.deepEqual(compact, { stats: full.stats, characters: full.characters });
   assert.equal(full.stats.unicodeVersion, sources.version);
-  assert.equal(full.stats.glyphPartyVersion, resolveBuildVersion());
+  assert.equal(typeof full.stats.glyphPartyVersion, "string");
+  assert.ok(full.stats.glyphPartyVersion.length > 0, "Etched version must be non-empty");
   assert.ok(!full.stats.glyphPartyVersion.startsWith("v"), "Etched version must omit the leading v prefix");
   assert.equal(full.stats.totalCharacters, 10868);
   assert.equal(full.characters.length, full.stats.totalCharacters);

@@ -10,7 +10,7 @@ just version
 for source in ./*.js test/*.js; do
     node --check "${source}"
 done
-for source in src/*.js; do
+for source in pages/*.js; do
     node --input-type=module --check < "${source}"
 done
 python3 - <<'PY'

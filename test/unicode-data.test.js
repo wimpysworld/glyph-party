@@ -6,7 +6,11 @@ const https = require("https");
 const { EventEmitter } = require("events");
 const { createHash } = require("crypto");
 const { parseUnicodeData, parseBlocks, loadSource } = require("../ucd-data");
-const { selectGlyphs, groupGlyphs } = require("../build-unicode-data");
+const {
+  selectGlyphs,
+  groupGlyphs,
+  resolveBuildVersion,
+} = require("../build-unicode-data");
 const sources = require("../ucd-sources.json");
 
 function record(code, name, category) {
@@ -143,14 +147,45 @@ async function testSourceCache() {
   }
 }
 
+function testVersionEtching() {
+  const failingExec = () => {
+    throw new Error("git unavailable");
+  };
+  assert.equal(
+    resolveBuildVersion({ env: { BUILD_VERSION: "v1.2.3" }, packageJson: { version: "0.2.0" }, exec: failingExec }),
+    "1.2.3",
+  );
+  assert.equal(
+    resolveBuildVersion({ env: { BUILD_VERSION: " 1.2.3 " }, packageJson: { version: "0.2.0" }, exec: failingExec }),
+    "1.2.3",
+  );
+  assert.equal(
+    resolveBuildVersion({
+      env: {},
+      packageJson: { version: "0.2.0" },
+      exec: () => "v0.2.0-3-g7e075f8-dirty\n",
+    }),
+    "0.2.0-3-g7e075f8-dirty",
+  );
+  assert.equal(
+    resolveBuildVersion({ env: {}, packageJson: { version: "v0.2.0" }, exec: failingExec }),
+    "0.2.0",
+  );
+  assert.equal(
+    resolveBuildVersion({ env: {}, packageJson: {}, exec: failingExec }),
+    "dev",
+  );
+}
+
 function testGeneratedData() {
   const read = (file) => JSON.parse(fs.readFileSync(path.join(__dirname, "..", file), "utf8"));
-  const full = read("src/unicode-data.json");
-  const compact = read("src/unicode-data.min.json");
+  const full = read("pages/unicode-data.json");
+  const compact = read("pages/unicode-data.min.json");
   const descriptions = read("descriptions.json");
   assert.deepEqual(compact, { stats: full.stats, characters: full.characters });
   assert.equal(full.stats.unicodeVersion, sources.version);
-  assert.equal(full.stats.glyphPartyVersion, read("package.json").version);
+  assert.equal(full.stats.glyphPartyVersion, resolveBuildVersion());
+  assert.ok(!full.stats.glyphPartyVersion.startsWith("v"), "Etched version must omit the leading v prefix");
   assert.equal(full.stats.totalCharacters, 10868);
   assert.equal(full.characters.length, full.stats.totalCharacters);
   assert.equal(full.stats.categories, 22);
@@ -185,7 +220,7 @@ function testGeneratedData() {
 }
 
 async function main() {
-  for (const test of [testUnicodeParser, testBlockParser, testSourceCache, testGeneratedData]) {
+  for (const test of [testUnicodeParser, testBlockParser, testVersionEtching, testSourceCache, testGeneratedData]) {
     await test();
     console.log(`PASS ${test.name}`);
   }

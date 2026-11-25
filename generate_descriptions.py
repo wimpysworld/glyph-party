@@ -32,7 +32,7 @@ class GlyphDescriptionBatch(BaseModel):
     descriptions: list[GlyphDescription]
 
 
-def load_unicode_data(path: str = "src/unicode-data.json") -> list[dict]:
+def load_unicode_data(path: str = "pages/unicode-data.json") -> list[dict]:
     """Load Unicode character data from JSON file."""
     if not os.path.exists(path):
         print(f"Error: {path} not found.")
@@ -258,7 +258,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     load_dotenv()
 
-    unicode_data_path = "src/unicode-data.json"
+    unicode_data_path = "pages/unicode-data.json"
     characters = load_unicode_data(unicode_data_path)
     if not characters:
         raise ValueError("Unicode data contains no characters.")

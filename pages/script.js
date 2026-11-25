@@ -223,7 +223,7 @@ class GlyphParty {
 
       if (this.stats.glyphPartyVersion) {
         document.getElementById("glyph-party-version").textContent =
-          `v${this.stats.glyphPartyVersion}`;
+          this.stats.glyphPartyVersion;
       }
       if (this.stats.unicodeVersion) {
         document.getElementById("unicode-version").textContent =

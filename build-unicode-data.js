@@ -6,6 +6,7 @@
  * Unicode Character Database (UCD).
  */
 
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const { loadUcdData } = require("./ucd-data");
@@ -87,8 +88,47 @@ function loadPackageJson() {
   try {
     return require("./package.json");
   } catch (error) {
-    return { version: "unknown" };
+    return { version: "dev" };
   }
+}
+
+function stripVersionPrefix(version) {
+  return String(version || "").trim().replace(/^v/, "");
+}
+
+function readGitVersion(exec = execFileSync) {
+  try {
+    const raw = exec(
+      "git",
+      ["describe", "--tags", "--match", "v*.*.*", "--always", "--dirty"],
+      {
+        cwd: __dirname,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      },
+    );
+    return stripVersionPrefix(raw);
+  } catch (error) {
+    return "";
+  }
+}
+
+function resolveBuildVersion({
+  env = process.env,
+  packageJson = loadPackageJson(),
+  exec = execFileSync,
+} = {}) {
+  const envVersion = stripVersionPrefix(env.BUILD_VERSION);
+  if (envVersion) {
+    return envVersion;
+  }
+
+  const gitVersion = readGitVersion(exec);
+  if (gitVersion) {
+    return gitVersion;
+  }
+
+  return stripVersionPrefix(packageJson?.version) || "dev";
 }
 
 function loadDescriptions() {
@@ -104,11 +144,13 @@ function loadDescriptions() {
 
 async function loadInputs() {
   const packageJson = loadPackageJson();
+  const version = resolveBuildVersion({ packageJson });
   const descriptions = loadDescriptions();
   const ucdData = await loadUcdData();
 
   return {
     packageJson,
+    version,
     descriptions,
     ...ucdData,
   };
@@ -232,6 +274,7 @@ function createStats({
   categorizedData,
   blockData,
   packageJson,
+  version,
   ucdSource,
 }) {
   return {
@@ -240,7 +283,10 @@ function createStats({
     blocks: Object.keys(blockData).length,
     generatedAt: new Date().toISOString(),
     unicodeVersion: ucdSource.version,
-    glyphPartyVersion: packageJson.version,
+    glyphPartyVersion:
+      stripVersionPrefix(version) ||
+      stripVersionPrefix(packageJson?.version) ||
+      "dev",
   };
 }
 
@@ -278,7 +324,7 @@ function printSummary({
   categorizedData,
   blockData,
   unicodeData,
-  packageJson,
+  version,
   ucdSource,
   mainDataFile,
   compactDataFile,
@@ -292,7 +338,7 @@ function printSummary({
   console.log(
     `   Processed: ${unicodeData.UnicodeData.length.toLocaleString()} total characters`,
   );
-  console.log(`   Glyph Party: v${packageJson.version}`);
+  console.log(`   Glyph Party: ${version}`);
   console.log(`   Unicode: ${ucdSource.version}`);
 
   console.log(`\n📁 Generated files:`);
@@ -319,7 +365,7 @@ function printSummary({
 async function main() {
   console.log("🎉 Building Unicode data for Glyph Party...\n");
 
-  const { packageJson, descriptions, unicodeData, blocks, ucdSource } =
+  const { packageJson, version, descriptions, unicodeData, blocks, ucdSource } =
     await loadInputs();
 
   console.log("📋 Processing Unicode blocks...");
@@ -338,10 +384,11 @@ async function main() {
     categorizedData,
     blockData,
     packageJson,
+    version,
     ucdSource,
   });
   const { mainDataFile, compactDataFile } = writeDataFiles(
-    "src",
+    "pages",
     stats,
     glyphData,
     categorizedData,
@@ -352,7 +399,7 @@ async function main() {
     categorizedData,
     blockData,
     unicodeData,
-    packageJson,
+    version,
     ucdSource,
     mainDataFile,
     compactDataFile,
@@ -367,4 +414,11 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createBlockMap, selectGlyphs, groupGlyphs, createStats };
+module.exports = {
+  createBlockMap,
+  selectGlyphs,
+  groupGlyphs,
+  createStats,
+  stripVersionPrefix,
+  resolveBuildVersion,
+};

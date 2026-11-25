@@ -7,9 +7,9 @@ yarn-error.log*
 .direnv/
 
 # Generated Unicode data files (these are large and can be regenerated)
-src/unicode-data.json
-src/unicode-data.min.json
-src/categories.json
+pages/unicode-data.json
+pages/unicode-data.min.json
+pages/categories.json
 
 .env
 __pycache__/

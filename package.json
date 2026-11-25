@@ -2,13 +2,13 @@
   "name": "glyph-party",
   "version": "0.2.0",
   "description": "A beautiful Unicode character search tool for terminal developers",
-  "main": "src/index.html",
+  "main": "pages/index.html",
   "scripts": {
     "test": "node test/unicode-data.test.js",
     "build:data": "node build-unicode-data.js",
-    "dev": "python3 -m http.server 8000 --directory src",
-    "build": "npm run build:data && echo 'Ready for deployment to Cloudflare Pages!'",
-    "clean": "rm -f src/unicode-data.json src/unicode-data.min.json"
+    "dev": "python3 -m http.server 8000 --directory pages",
+    "build": "npm run build:data && echo 'Ready for deployment to GitHub Pages!'",
+    "clean": "rm -f pages/unicode-data.json pages/unicode-data.min.json"
   },
   "keywords": [
     "unicode",
@@ -28,5 +28,5 @@
     "type": "git",
     "url": "https://github.com/wimpysworld/glyph-party.git"
   },
-  "homepage": "https://glyph-party.wimpysworld.com"
+  "homepage": "https://glyph-party.wimpys.world/"
 }

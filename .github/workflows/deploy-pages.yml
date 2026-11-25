@@ -1,39 +1,31 @@
-name: Deploy Cloudflare Pages
+name: Deploy Pages
 
 on:
-  workflow_call:
-    inputs:
-      branch:
-        required: true
-        type: string
-      commit_hash:
-        required: false
-        type: string
-        default: ""
-      commit_message:
-        required: false
-        type: string
-        default: ""
-    secrets:
-      cloudflare_api_token:
-        required: true
-      cloudflare_account_id:
-        required: true
-    outputs:
-      deployment_url:
-        description: Cloudflare Pages deployment URL
-        value: ${{ jobs.deploy.outputs.deployment_url }}
+  push:
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+      - "!v[0-9]*.[0-9]*.[0-9]*-*"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Deploy Cloudflare Pages
+  build:
+    name: Build Pages
     runs-on: ubuntu-latest
-    outputs:
-      deployment_url: ${{ steps.deploy.outputs.deployment-url }}
-
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -44,16 +36,38 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Build Unicode data
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "${REF_TYPE}" = "tag" ]; then
+            BUILD_VERSION="${REF_NAME#v}" npm run build
+          else
+            npm run build
+          fi
 
-      - name: Deploy to Cloudflare Pages
-        id: deploy
-        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          apiToken: ${{ secrets.cloudflare_api_token }}
-          accountId: ${{ secrets.cloudflare_account_id }}
-          command: >-
-            pages deploy src --project-name=glyph-party --branch=${{ toJSON(inputs.branch) }}
-            ${{ inputs.commit_hash != '' && format('--commit-hash={0}', toJSON(inputs.commit_hash)) || '' }}
-            ${{ inputs.commit_message != '' && format('--commit-message={0}', toJSON(inputs.commit_message)) || '' }}
+          path: "pages"
+
+  deploy:
+    name: Deploy Pages
+    needs: build
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

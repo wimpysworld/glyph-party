@@ -33,11 +33,11 @@ Run `just check` before committing. Run `just build` when changing the data pipe
 
 - Use vanilla HTML and JavaScript with Digicreon µCSS. Do not add a JavaScript framework, bundler, transpiler, or runtime dependency.
 - Do not add µJS.
-- Keep browser code as ES modules, with `src/script.js` as the only HTML entry point.
-- Put feature code in focused modules under `src/`.
+- Keep browser code as ES modules, with `pages/script.js` as the only HTML entry point.
+- Put feature code in focused modules under `pages/`.
 - Use `async/await` for data loading
 - Debounce user input handlers.
-- Keep `src/index.html` as semantic single-page application markup.
+- Keep `pages/index.html` as semantic single-page application markup.
 - Use CSS custom properties for all project colours.
 - Use the pinned Digicreon µCSS Violet stylesheet, followed by the project stylesheet.
 - Keep project custom properties and overrides in the project stylesheet.
@@ -49,21 +49,20 @@ Run `just check` before committing. Run `just build` when changing the data pipe
 - Verify source checksums against the source manifest before use, including cached files in `.cache/ucd/<version>`.
 - Keep the build script as named CommonJS pipeline functions for loading, filtering, grouping, writing, and reporting data.
 - Keep command-line behaviour in `main()`.
-- Generated data files are `src/unicode-data.min.json` and `src/unicode-data.json`. Do not edit those files by hand.
+- Generated data files are `pages/unicode-data.min.json` and `pages/unicode-data.json`. Do not edit those files by hand.
+- Keep the `v` prefix on Git tags only. Etch bare versions into generated data via `BUILD_VERSION`, `git describe --tags --match 'v*.*.*' --always --dirty`, or `package.json`.
 - Character selection includes mathematical, currency, modifier, punctuation, and priority symbol blocks.
 - Keep filters that exclude control characters, private-use areas, and non-printable glyphs.
 
 ## Deployment
 
-- Cloudflare Pages build command: `npm run build`
-- Cloudflare Pages output directory: `src`
+- Build command: `npm run build`
+- Static output directory: `pages`
 - Keep the app static. Do not add server-side code.
-- `.github/workflows/deploy-pages.yml` is the shared deploy workflow
-- Keep `preview.yml` and `production.yml` as thin callers of `deploy-pages.yml`.
-- `preview.yml` deploys same-repository pull requests and comments with the preview URL.
-- `production.yml` deploys stable SemVer tags from `main`
-- Required repository secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+- `.github/workflows/deploy-pages.yml` builds `pages/` and deploys to GitHub Pages on stable SemVer tags (`v*.*.*`) and `workflow_dispatch`.
+- Keep `pages.enabled: false` in `.tailor.yml` so Tailor does not overwrite custom `pages/` app files or skip the Unicode data build.
+- Custom domain `glyph-party.wimpys.world` points to `wimpysworld.github.io` via Cloudflare DNS (DNS Only).
 
 ## Security and Secrets
 
-- Never commit Cloudflare credentials or generated secret material.
+- Never commit credentials or generated secret material.

@@ -53,7 +53,7 @@ npm run dev
 Run `nix develop` to use the locked nixpkgs defaults for Node.js and Python, plus `uv`, Just, and Actionlint.
 
 > [!TIP]
-> The browser code uses ES modules. Serve the site over HTTP, for example with `just dev`, instead of opening `src/index.html` from disk.
+> The browser code uses ES modules. Serve the site over HTTP, for example with `just dev`, instead of opening `pages/index.html` from disk.
 
 ### Unicode data sources
 
@@ -118,27 +118,21 @@ just help                   # List every recipe
 The root `justfile` imports `just/loader.just`. Tailor owns the loader and core recipes.
 Project build, test, and lint steps are in `just/project/*.sh`. The root overrides only setup and release to retain project-specific behaviour.
 Python remains disabled in Tailor because the description tools use a virtual uv project, not an installable Python package.
-Tailor's GitHub Pages support remains disabled because the site uses Cloudflare Pages.
+Tailor's GitHub Pages integration remains disabled because deployment requires building `pages/unicode-data.min.json` in CI before uploading `pages/`.
 
 ## 🚀 Deployment
 
-Designed for [Cloudflare Pages](https://pages.cloudflare.com) but works anywhere static sites are welcome.
+Published to [GitHub Pages](https://pages.github.com/) at `glyph-party.wimpys.world` via Cloudflare DNS (`CNAME` to `wimpysworld.github.io`, DNS Only).
 
-GitHub Actions deploys the site with the reusable `.github/workflows/deploy-pages.yml` workflow:
+GitHub Actions deploys the site with `.github/workflows/deploy-pages.yml`:
 
-- Pull requests from this repository deploy a preview and add the preview URL as a PR comment.
 - Pull requests, including forks, run the secret-free `👁️ Sentinel` check. It builds Unicode data and runs both test suites.
-- Stable SemVer tags with a `v` prefix, such as `v1.2.3`, deploy production. Create release tags from `main`.
-- The workflows expect `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
+- Stable SemVer tags with a `v` prefix, such as `v1.2.3`, build `pages/unicode-data.min.json` with bare version `1.2.3` (`BUILD_VERSION`) and deploy `pages/` to GitHub Pages. Manual runs via `workflow_dispatch` are also supported.
+- Local builds etch the bare version from `git describe --tags --match 'v*.*.*' --always --dirty` (with the leading `v` stripped), falling back to `package.json`.
 
 For a release, run `just version-bump 1.2.3`, review and commit the changes, then run `just release 1.2.3` from a clean checkout.
 The release command checks all project version files before Tailor creates the local `v1.2.3` tag. Push the tag to publish it.
-Existing tags without a `v` prefix remain unchanged and no longer trigger production deployments.
-
-For a manual Cloudflare Pages setup, use:
-
-- Build command: `npm run build`
-- Output directory: `src`
+Existing tags without a `v` prefix remain unchanged and do not trigger production deployments.
 
 ## 🎯 Perfect For
 

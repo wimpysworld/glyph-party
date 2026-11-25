@@ -143,23 +143,23 @@ setup: install build
 deploy-prep: rebuild
     @echo "📦 Glyph Party ready for deployment!"
     @echo "Generated files:"
-    @ls -lh src/*.json | awk '{print "  " $9 " (" $5 ")"}'
+    @ls -lh pages/*.json | awk '{print "  " $9 " (" $5 ")"}'
 
 # Show project statistics
 stats:
     #!/usr/bin/env bash
     echo "📊 Glyph Party Statistics:"
     echo "================================"
-    if [ -f "src/unicode-data.min.json" ]; then
+    if [ -f "pages/unicode-data.min.json" ]; then
         echo "Unicode data loaded ✅"
-        node -e "const data = require('./src/unicode-data.min.json'); console.log('Characters: ' + data.stats.totalCharacters.toLocaleString()); console.log('Categories: ' + data.stats.categories); console.log('Unicode Version: ' + data.stats.unicodeVersion)"
+        node -e "const data = require('./pages/unicode-data.min.json'); console.log('Characters: ' + data.stats.totalCharacters.toLocaleString()); console.log('Categories: ' + data.stats.categories); console.log('Unicode Version: ' + data.stats.unicodeVersion)"
     else
         echo "Unicode data not built ❌"
         echo "Run 'just build' to generate data"
     fi
     echo ""
     echo "Files:"
-    find src \( -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.json" \) | sort | while read file; do
+    find pages \( -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.json" \) | sort | while read file; do
         if [ -f "$file" ]; then
             size=$(ls -lh "$file" | awk '{print $5}')
             echo "  $file ($size)"
@@ -171,19 +171,19 @@ check:
     @echo "🔍 Checking Glyph Party setup..."
     @echo "================================"
     @echo "Files:"
-    @if [ -f "src/index.html" ]; then echo "✅ src/index.html"; else echo "❌ src/index.html (missing)"; fi
-    @if [ -f "src/style.css" ]; then echo "✅ src/style.css"; else echo "❌ src/style.css (missing)"; fi
-    @if [ -f "src/script.js" ]; then echo "✅ src/script.js"; else echo "❌ src/script.js (missing)"; fi
+    @if [ -f "pages/index.html" ]; then echo "✅ pages/index.html"; else echo "❌ pages/index.html (missing)"; fi
+    @if [ -f "pages/style.css" ]; then echo "✅ pages/style.css"; else echo "❌ pages/style.css (missing)"; fi
+    @if [ -f "pages/script.js" ]; then echo "✅ pages/script.js"; else echo "❌ pages/script.js (missing)"; fi
     @if [ -f "build-unicode-data.js" ]; then echo "✅ build-unicode-data.js"; else echo "❌ build-unicode-data.js (missing)"; fi
     @if [ -f "package.json" ]; then echo "✅ package.json"; else echo "❌ package.json (missing)"; fi
     @echo ""
-    @if [ -f "src/unicode-data.min.json" ]; then echo "✅ Unicode data built"; else echo "⚠️  Unicode data not built (run 'just build')"; fi
+    @if [ -f "pages/unicode-data.min.json" ]; then echo "✅ Unicode data built"; else echo "⚠️  Unicode data not built (run 'just build')"; fi
     @if [ -f "descriptions.json" ]; then echo "✅ Glyph descriptions generated"; else echo "⚠️  Glyph descriptions not generated (run 'just generate-descriptions')"; fi
     @echo ""
     @if command -v node >/dev/null 2>&1; then echo "✅ Node.js available ($(node --version))"; else echo "❌ Node.js not found"; fi
     @if command -v python3 >/dev/null 2>&1; then echo "✅ Python available ($(python3 --version 2>&1))"; else echo "❌ Python not found"; fi
     @if command -v uv >/dev/null 2>&1; then echo "✅ uv available ($(uv --version))"; else echo "⚠️  uv not found (needed for 'just generate-descriptions')"; fi
-    @if [ -f "src/unicode-data.json" ] || [ -f "src/unicode-data.min.json" ]; then \
+    @if [ -f "pages/unicode-data.json" ] || [ -f "pages/unicode-data.min.json" ]; then \
         npm test; \
     else \
         echo "⚠️  Unicode tests skipped because data is not built (run 'just build')"; \
@@ -200,7 +200,7 @@ help:
 watch:
     @echo "👀 Starting Glyph Party with file watching..."
     @if command -v watchexec >/dev/null 2>&1; then \
-        watchexec -w src -i "*.json" -- echo "Files changed, browser should auto-reload"; \
+        watchexec -w pages -i "*.json" -- echo "Files changed, browser should auto-reload"; \
     else \
         echo "❌ watchexec not found. Install with: cargo install watchexec-cli"; \
         echo "📝 Falling back to regular serve mode..."; \

@@ -11,6 +11,8 @@ builtins.seq pkgs (
     )
     (if builtins.pathExists ./python.nix then import ./python.nix { inherit pkgs; } else [ ])
     (if builtins.pathExists ./rust.nix then import ./rust.nix { inherit pkgs; } else [ ])
+    (if builtins.pathExists ./javascript.nix then import ./javascript.nix { inherit pkgs; } else [ ])
+    (if builtins.pathExists ./shell.nix then import ./shell.nix { inherit pkgs; } else [ ])
     (
       if builtins.pathExists ./go-ffmpeg-statigo.nix then
         import ./go-ffmpeg-statigo.nix { inherit pkgs; }

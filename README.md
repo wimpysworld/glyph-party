@@ -1,6 +1,22 @@
-# ✨ Glyph Party
+<!-- tailor:social-header:start -->
+<p align="center">
+  <a href="https://glyph-party.wimpys.world/"><picture><source media="(prefers-color-scheme: dark)" srcset="pages/social/hero-dark.svg"><img src="pages/social/hero-light.svg" alt="Glyph Party"></picture></a>
+</p>
+<!-- tailor:social-header:end -->
 
-> *Beautiful Unicode Character Search*
+<!-- tailor:social-links:start -->
+<p align="center">
+  <a href="https://bsky.app/profile/wimpys.world"><picture><source media="(prefers-color-scheme: dark)" srcset="pages/social/link-bluesky-dark.svg"><img src="pages/social/link-bluesky-light.svg" alt="Bluesky"></picture></a>
+  <a href="https://wimpysworld.social/@martin"><picture><source media="(prefers-color-scheme: dark)" srcset="pages/social/link-mastodon-dark.svg"><img src="pages/social/link-mastodon-light.svg" alt="Mastodon"></picture></a>
+  <a href="https://linkedin.com/in/martinwimpress"><picture><source media="(prefers-color-scheme: dark)" srcset="pages/social/link-linkedin-dark.svg"><img src="pages/social/link-linkedin-light.svg" alt="LinkedIn"></picture></a>
+</p>
+<!-- tailor:social-links:end -->
+
+<!-- tailor:social-community:start -->
+<p align="center">
+  <a href="https://discord.com/invite/vUsydfP"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/community-dark.svg"><img src="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/community-light.svg" alt="Discord community"></picture></a>
+</p>
+<!-- tailor:social-community:end -->
 
 A drop-dead gorgeous [Unicode character search](https://glyph-party.wimpys.world/) tool for developers who want to add visual flair to their CLI applications, because your terminal deserves better than boring ASCII. Built with love, powered by cups of tea, and themed with Digicreon µCSS Violet colours 🎨 that'll make your eyes happy.
 
@@ -29,6 +45,18 @@ Tired of hunting through nightmarish Unicode search websites that look like they
 The optional preview loads [Noto Sans Symbols 2 v25](https://fonts.gstatic.com/s/notosanssymbols2/v25/I_uyMoGduATTei9eI8daxVHDyfisHr71ypY.woff2) from Google's content delivery network. The font uses the [SIL Open Font License 1.1](https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssymbols2/OFL.txt).
 
 Selecting Noto requires a network connection and contacts Google. Local browser fonts are the default, with no reference font request until you select Noto. If the font cannot load, the preview returns to local fonts. Glyph Party does not bundle the font.
+
+<!-- tailor:social-stats:start -->
+<p align="center">
+  <a href="https://github.com/wimpysworld/glyph-party/pulse"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/stats-dark.svg"><img src="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/stats-light.svg" alt="Glyph Party statistics"></picture></a>
+</p>
+<!-- tailor:social-stats:end -->
+
+<!-- tailor:social-sponsors:start -->
+<p align="center">
+  <a href="https://github.com/sponsors/flexiondotorg"><picture><source media="(prefers-color-scheme: dark)" srcset="pages/social/sponsors-dark.svg"><img src="pages/social/sponsors-light.svg" alt="Glyph Party sponsors"></picture></a>
+</p>
+<!-- tailor:social-sponsors:end -->
 
 ## ⚡ Quick Start
 
@@ -155,3 +183,21 @@ Found a bug? Want to add features? Think the colour scheme needs more purple? PR
 ---
 
 *Made in 🏴󠁧󠁢󠁥󠁮󠁧󠁿 while listening to [Linux Matters](https://linuxmatters.sh) 🐧🎙️*
+
+<!-- tailor:social-stars:start -->
+<p align="center">
+  <a href="https://github.com/wimpysworld/glyph-party/stargazers"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/stars-dark.svg"><img src="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/stars-light.svg" alt="Glyph Party star history"></picture></a>
+</p>
+<!-- tailor:social-stars:end -->
+
+<!-- tailor:social-contributors:start -->
+<p align="center">
+  <a href="https://github.com/wimpysworld/glyph-party/graphs/contributors"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/contributors-dark.svg"><img src="https://raw.githubusercontent.com/wimpysworld/glyph-party/social-assets/contributors-light.svg" alt="Glyph Party contributors"></picture></a>
+</p>
+<!-- tailor:social-contributors:end -->
+
+<!-- tailor:social-footer:start -->
+<p align="center">
+  <a href="https://tailor.wimpys.world"><picture><source media="(prefers-color-scheme: dark)" srcset="pages/social/footer-dark.svg"><img src="pages/social/footer-light.svg" alt="Fitted by Tailor"></picture></a>
+</p>
+<!-- tailor:social-footer:end -->
